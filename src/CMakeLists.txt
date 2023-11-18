@@ -1,0 +1,4 @@
+set(SRC
+  ${CMAKE_CURRENT_SOURCE_DIR}/game.cpp
+  PARENT_SCOPE
+  )
