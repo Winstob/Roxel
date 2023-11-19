@@ -19,9 +19,9 @@ set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(GLAD_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/glad)
 
 # Subdirectories
+add_subdirectory(src)
 add_subdirectory(${GLFW_DIR})
 add_subdirectory(${GLAD_DIR})
-add_subdirectory(src)
 
 add_executable(${PROJECT_NAME}
   ${SRC}
