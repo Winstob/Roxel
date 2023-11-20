@@ -18,10 +18,21 @@ set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 
 set(GLAD_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/glad)
 
+set(GLM_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/glm)
+externalproject_add(glm_download
+  GIT_REPOSITORY      https://github.com/g-truc/glm.git
+  GIT_TAG             master
+  SOURCE_DIR          ${GLM_DIR}
+  BUILD_COMMAND       ""
+  INSTALL_COMMAND     ""
+  )
+
+
 # Subdirectories
 add_subdirectory(src)
 add_subdirectory(${GLFW_DIR})
 add_subdirectory(${GLAD_DIR})
+add_subdirectory(${GLM_DIR})
 
 add_executable(${PROJECT_NAME}
   ${SRC}
@@ -30,4 +41,5 @@ add_executable(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
   glfw
   glad
+  glm
   )
