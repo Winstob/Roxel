@@ -30,7 +30,9 @@ add_subdirectory(${GLAD_DIR})
 add_subdirectory(${GLM_DIR})
 
 set(HEADERS
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/window.hpp
+  # ${CMAKE_CURRENT_SOURCE_DIR}/include/window.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/camera.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/shader.hpp
   )
 
 set(SRC
@@ -51,4 +53,5 @@ target_link_libraries(${PROJECT_NAME}
 target_include_directories(${PROJECT_NAME}
   PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/src
   )
