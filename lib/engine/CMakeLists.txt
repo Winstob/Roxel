@@ -1,6 +1,7 @@
 project(Engine)
 
 set(PROJECT_NAME engine)
+#set(CMAKE_EXE_LINKER_FLAGS "-static") 
 
 set(GLFW_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/glfw)
 #externalproject_add(glfw_download
@@ -13,6 +14,7 @@ set(GLFW_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/glfw)
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(GLFW_LIBRARY_TYPE STATIC)
 
 set(GLAD_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/glad)
 #externalproject_add(glm_download
@@ -39,9 +41,14 @@ set(SRC
   ${CMAKE_CURRENT_SOURCE_DIR}/src/window.cpp
   )
 
+set(SHADERS
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/internalshaders.hpp
+  )
+
 add_library(${PROJECT_NAME}
   ${SRC}
   ${HEADERS}
+  ${SHADERS}
   )
 
 target_link_libraries(${PROJECT_NAME}

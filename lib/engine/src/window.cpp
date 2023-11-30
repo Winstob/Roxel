@@ -73,8 +73,7 @@ int startWindow()
 
   // build and compile our shader zprogram
   // ------------------------------------
-  //Shader ourShader("7.4.camera.vs", "7.4.camera.fs");
-  Shader ourShader("/home/gavin/HomeProjects/Roxel/lib/engine/include/first_shader.vs", "/home/gavin/HomeProjects/Roxel/lib/engine/include/first_shader.fs");
+  Shader cube_shader(Shader::ShaderInputType::CODESTRING, cube_vertex_shader.c_str(), cube_fragment_shader.c_str());
 
   // set up vertex data (and buffer(s)) and configure vertex attributes
   // ------------------------------------------------------------------
@@ -135,7 +134,7 @@ int startWindow()
 
   // tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
   // -------------------------------------------------------------------------------------------
-  ourShader.use();
+  cube_shader.use();
 
 
   // render loop
@@ -158,15 +157,15 @@ int startWindow()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 
     // activate shader
-    ourShader.use();
+    cube_shader.use();
 
     // pass projection matrix to shader (note that in this case it could change every frame)
     glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-    ourShader.setMat4("projection", projection);
+    cube_shader.setMat4("projection", projection);
 
     // camera/view transformation
     glm::mat4 view = camera.GetViewMatrix();
-    ourShader.setMat4("view", view);
+    cube_shader.setMat4("view", view);
 
     // render boxes
     glBindVertexArray(VAO);
@@ -176,7 +175,7 @@ int startWindow()
     model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
     float angle = 0.0f;
     model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-    ourShader.setMat4("model", model);
+    cube_shader.setMat4("model", model);
 
     //glDrawArrays(GL_TRIANGLES, 0, 36);
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
