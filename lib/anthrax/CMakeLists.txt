@@ -1,6 +1,6 @@
-project(Engine)
+project(Anthrax)
 
-set(PROJECT_NAME engine)
+set(PROJECT_NAME anthrax)
 
 set(GLFW_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/glfw)
 #externalproject_add(glfw_download
@@ -35,6 +35,7 @@ set(HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/include/camera.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/include/shader.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/include/cube.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/anthrax_types.hpp
   )
 
 set(SRC

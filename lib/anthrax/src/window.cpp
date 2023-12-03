@@ -12,8 +12,9 @@
 
 #include <iostream>
 
-namespace Engine
+namespace Anthrax
 {
+
 Cube *cubes_to_render = NULL;
 int num_cubes_to_render = 0;
 
@@ -29,7 +30,7 @@ void processInput(GLFWwindow *window);
 // settings
 unsigned int SCR_WIDTH = 800;
 unsigned int SCR_HEIGHT = 600;
-unsigned int SPEED = 100;
+unsigned int SPEED = 50;
 unsigned int RENDER_DISTANCE = 10000;
 
 // camera
@@ -167,12 +168,12 @@ int renderFrame()
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
   for (int i = 0; i < num_cubes_to_render; i++)
   {
+    Cube *current_cube = &(cubes_to_render[i]);
     // activate shader
     cube_shader->use();
 
     // set cube color
-    float *cube_color = cubes_to_render[i].getColor();
-    cube_shader->setVec4("color", glm::vec4(cube_color[0], cube_color[1], cube_color[2], cube_color[3]));
+    cube_shader->setVec4("color", glm::vec4(current_cube->getColorR(), current_cube->getColorG(), current_cube->getColorB(), current_cube->getColorK()));
 
     // pass projection matrix to shader (note that in this case it could change every frame)
     glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, (float)RENDER_DISTANCE);
@@ -186,10 +187,9 @@ int renderFrame()
     glBindVertexArray(cube_VAO);
 
     // set cube position
-    int *cube_position = cubes_to_render[i].getPosition();
     // calculate the model matrix for each object and pass it to shader before drawing
     glm::mat4 model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
-    model = glm::translate(model, glm::vec3(cube_position[0], cube_position[1], cube_position[2]));
+    model = glm::translate(model, glm::vec3(current_cube->getPosX(), current_cube->getPosY(), current_cube->getPosZ()));
     float angle = 0.0f;
     model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
     cube_shader->setMat4("model", model);
@@ -284,4 +284,4 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
   camera.ProcessMouseScroll(static_cast<float>(yoffset));
 }
 
-} // namespace Engine
+} // namespace Anthrax

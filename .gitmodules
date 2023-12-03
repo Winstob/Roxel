@@ -1,6 +1,6 @@
-[submodule "lib/engine/lib/glfw"]
-	path = lib/engine/lib/glfw
+[submodule "lib/anthrax/lib/glfw"]
+	path = lib/anthrax/lib/glfw
 	url = https://github.com/glfw/glfw.git
-[submodule "lib/engine/lib/glm"]
-	path = lib/engine/lib/glm
+[submodule "lib/anthrax/lib/glm"]
+	path = lib/anthrax/lib/glm
 	url = https://github.com/g-truc/glm.git

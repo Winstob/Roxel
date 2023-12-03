@@ -1,33 +1,31 @@
-#include <glad/glad.h>
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
-
 #include <stdlib.h>
+#include <iostream>
 
 #include "window.cpp"
+#include "Player/player.hpp"
 
-#include <iostream>
 
 int main()
 {
-  Engine::num_cubes_to_render = 10000;
+  Anthrax::num_cubes_to_render = 10000;
   int x = 100;
-  Engine::cubes_to_render = (Cube*)malloc(Engine::num_cubes_to_render*sizeof(Cube));
-  Engine::cubes_to_render[0] = Cube({0.5, 0.0, 0.0, 1.0}, {0, 0, 0});
-  Engine::cubes_to_render[1] = Cube({0.0, 0.0, 0.5, 1.0}, {0, 1, 0});
+  Anthrax::cubes_to_render = (Anthrax::Cube*)malloc(Anthrax::num_cubes_to_render*sizeof(Anthrax::Cube));
   int k = 0;
   for (int i = 0; i < x; i++)
   {
-    for (int j = 0; j < Engine::num_cubes_to_render/x; j++)
+    for (int j = 0; j < Anthrax::num_cubes_to_render/x; j++)
     {
-      Engine::cubes_to_render[k] = Cube({(float)Engine::num_cubes_to_render/(i+1), 0.0, (float)i/Engine::num_cubes_to_render, 1.0}, {i, j, 0});
+      Anthrax::vec4<float> color((float)i/x, (float)0.0, (float)j/(Anthrax::num_cubes_to_render/x), (float)1.0);
+      Anthrax::vec3<int> pos(i-(x/2), -10, j-(x/2));
+      //Anthrax::cubes_to_render[k] = Anthrax::Cube(Anthrax::vec4<float>((float)i/x, 0.0, (float)j/(Anthrax::num_cubes_to_render/x), 1.0), Anthrax::vec3<int>(i-(x/2), -10, j-(x/2)));
+      Anthrax::cubes_to_render[k] = Anthrax::Cube(color, pos);
       k++;
     }
   }
 
   try
   {
-    Engine::startWindow();
+    Anthrax::startWindow();
   }
   catch (std::exception &e)
   {
@@ -38,7 +36,7 @@ int main()
 #ifdef WIN32
   while (!window_closed)
   {
-    window_closed = Engine::renderFrame();
+    window_closed = Anthrax::renderFrame();
   }
 #else
   time_t time_frame_start;
@@ -55,10 +53,10 @@ int main()
       num_frames = 0;
     }
     num_frames++;
-    window_closed = Engine::renderFrame();
+    window_closed = Anthrax::renderFrame();
   }
 #endif
 
-  delete(Engine::cubes_to_render);
+  delete(Anthrax::cubes_to_render);
   return 0;
 }

@@ -10,7 +10,7 @@ elseif(UNIX)
   set(CMAKE_SHARED_LINKER_FLAGS "-static")
 endif()
 
-find_package(engine REQUIRED)
+find_package(anthrax REQUIRED)
 
 # Subdirectories
 add_subdirectory(src)
@@ -21,5 +21,5 @@ add_executable(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
-  engine
+  anthrax
   )
