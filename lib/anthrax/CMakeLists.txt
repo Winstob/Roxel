@@ -31,7 +31,7 @@ add_subdirectory(${GLAD_DIR})
 add_subdirectory(${GLM_DIR})
 
 set(HEADERS
-  # ${CMAKE_CURRENT_SOURCE_DIR}/include/window.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/window.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/include/camera.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/include/shader.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/include/cube.hpp

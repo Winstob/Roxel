@@ -17,11 +17,12 @@ int main()
     {
       Anthrax::vec4<float> color((float)i/x, (float)0.0, (float)j/(Anthrax::num_cubes_to_render/x), (float)1.0);
       Anthrax::vec3<int> pos(i-(x/2), -10, j-(x/2));
-      //Anthrax::cubes_to_render[k] = Anthrax::Cube(Anthrax::vec4<float>((float)i/x, 0.0, (float)j/(Anthrax::num_cubes_to_render/x), 1.0), Anthrax::vec3<int>(i-(x/2), -10, j-(x/2)));
       Anthrax::cubes_to_render[k] = Anthrax::Cube(color, pos);
       k++;
     }
   }
+
+  Player player = Player();
 
   try
   {
@@ -54,6 +55,7 @@ int main()
     }
     num_frames++;
     window_closed = Anthrax::renderFrame();
+    player.processInput();
   }
 #endif
 

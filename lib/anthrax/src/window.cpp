@@ -1,3 +1,6 @@
+#ifndef ANTHRAX_WINDOW_CPP
+#define ANTHRAX_WINDOW_CPP
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
@@ -9,6 +12,8 @@
 #include "camera.hpp"
 
 #include "cube.hpp"
+
+#include "window.hpp"
 
 #include <iostream>
 
@@ -284,4 +289,32 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
   camera.ProcessMouseScroll(static_cast<float>(yoffset));
 }
 
+Window::Window()
+{
+}
+
+bool Window::getKeyPress(Key key)
+{
+  switch(key)
+  {
+    case Key::A:
+      return (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS);
+    case Key::D:
+      return (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS);
+    case Key::S:
+      return (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS);
+    case Key::W:
+      return (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS);
+    case Key::SPACE:
+      return (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS);
+    case Key::LSHIFT:
+      return (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS);
+    default:
+      return false;
+  }
+}
+
 } // namespace Anthrax
+
+#endif // ANTHRAX_WINDOW_CPP
+#define ANTHRAX_WINDOW_CPP

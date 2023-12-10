@@ -1,6 +1,9 @@
 #ifndef ANTHRAX_TYPES_HPP
 #define ANTHRAX_TYPES_HPP
 
+#include <string>
+#include <iostream>
+
 namespace Anthrax
 {
 
@@ -24,6 +27,13 @@ public:
     this->z_ = vec.z_;
     return *this;
   }
+  vec3<T>& operator+(const vec3& other_vec)
+  {
+    this->x_ += other_vec.x_;
+    this->y_ += other_vec.y_;
+    this->z_ += other_vec.z_;
+    return *this;
+  }
 
   T getX()
   {
@@ -44,6 +54,7 @@ private:
   T y_;
   T z_;
 };
+
 
 template<class T>
 class vec4
@@ -95,6 +106,48 @@ private:
   T w_;
 };
 
+
+enum Key
+{
+  A,
+  B,
+  C,
+  D,
+  E,
+  F,
+  G,
+  H,
+  I,
+  J,
+  K,
+  L,
+  M,
+  N,
+  O,
+  P,
+  Q,
+  R,
+  S,
+  T,
+  U,
+  V,
+  W,
+  X,
+  Y,
+  Z,
+  ONE,
+  TWO,
+  THREE,
+  FOUR,
+  FIVE,
+  SIX,
+  SEVEN,
+  EIGHT,
+  NINE,
+  ZERO,
+  SPACE,
+  LSHIFT
+};
 
 } // namespace Anthrax
 #endif // ANTHRAX_TYPES_HPP

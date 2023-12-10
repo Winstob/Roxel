@@ -5,5 +5,6 @@ set(SRC_HEADERS
 
 set(SRC
   ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Player/player.cpp
   PARENT_SCOPE
   )
