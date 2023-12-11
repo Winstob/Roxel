@@ -1,13 +1,15 @@
 #ifndef PLAYER_HPP
 #define PLAYER_HPP
 
-#include "anthrax_types.hpp"
+#include "anthrax.hpp"
+
 class Player
 {
 public:
-  Player();
+  Player(Anthrax::Anthrax *anthrax_handle);
   void processInput();
 private:
+  Anthrax::Anthrax *anthrax_handle_;
   Anthrax::vec3<float> head_position_;
   Anthrax::vec4<float> head_rotation_;
   Anthrax::vec3<float> velocity_;

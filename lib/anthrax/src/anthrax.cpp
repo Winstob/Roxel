@@ -1,54 +1,39 @@
-#ifndef ANTHRAX_WINDOW_CPP
-#define ANTHRAX_WINDOW_CPP
-
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-#include "shader.hpp"
-#include "camera.hpp"
-
-#include "cube.hpp"
-
-#include "window.hpp"
-
+#include "anthrax.hpp"
 #include <iostream>
 
 namespace Anthrax
 {
 
-Cube *cubes_to_render = NULL;
-int num_cubes_to_render = 0;
+// Initialize staic member variables
+GLFWwindow* Anthrax::window;
+Camera Anthrax::camera;
+unsigned int Anthrax::SCR_WIDTH;
+unsigned int Anthrax::SCR_HEIGHT;
+int Anthrax::SPEED;
+unsigned int Anthrax::RENDER_DISTANCE;
+float Anthrax::lastX;
+float Anthrax::lastY;
+bool Anthrax::firstMouse;
+float Anthrax::deltaTime;
+float Anthrax::lastFrame;
 
-GLFWwindow* window = NULL;
-unsigned int cube_VBO, cube_VAO, cube_EBO;
-Shader* cube_shader = NULL;
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-void processInput(GLFWwindow *window);
+Anthrax::Anthrax()
+{
+  window = NULL;
+  camera = Camera(glm::vec3(0.0f, 0.0f, 3.0f));
+  SCR_WIDTH = 800;
+  SCR_HEIGHT = 600;
+  SPEED = 50;
+  RENDER_DISTANCE = 10000;
+  lastX = SCR_WIDTH / 2.0f;
+  lastY = SCR_HEIGHT / 2.0f;
+  firstMouse = true;
+  deltaTime = 0.0f;
+  lastFrame = 0.0f;
+}
 
-// settings
-unsigned int SCR_WIDTH = 800;
-unsigned int SCR_HEIGHT = 600;
-unsigned int SPEED = 50;
-unsigned int RENDER_DISTANCE = 10000;
-
-// camera
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
-float lastX = SCR_WIDTH / 2.0f;
-float lastY = SCR_HEIGHT / 2.0f;
-bool firstMouse = true;
-
-// timing
-float deltaTime = 0.0f;	// time between current frame and last frame
-float lastFrame = 0.0f;
-
-int startWindow()
+int Anthrax::startWindow()
 {
   // glfw: initialize and configure
   // ------------------------------
@@ -153,7 +138,7 @@ int startWindow()
 }
 
 
-int renderFrame()
+int Anthrax::renderFrame()
 {
   // render loop
   // -----------
@@ -171,9 +156,9 @@ int renderFrame()
   // ------
   //glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
-  for (int i = 0; i < num_cubes_to_render; i++)
+  for (int i = 0; i < voxel_buffer_.size(); i++)
   {
-    Cube *current_cube = &(cubes_to_render[i]);
+    Cube *current_cube = &(voxel_buffer_[i]);
     // activate shader
     cube_shader->use();
 
@@ -227,7 +212,7 @@ int renderFrame()
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
-void processInput(GLFWwindow *window)
+void Anthrax::processInput(GLFWwindow *window)
 {
   float move_amount = deltaTime * SPEED;
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -249,7 +234,7 @@ void processInput(GLFWwindow *window)
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
 // ---------------------------------------------------------------------------------------------
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+void Anthrax::framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
   // make sure the viewport matches the new window dimensions; note that width and 
   // height will be significantly larger than specified on retina displays.
@@ -261,7 +246,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 
 // glfw: whenever the mouse moves, this callback is called
 // -------------------------------------------------------
-void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
+void Anthrax::mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 {
   float xpos = static_cast<float>(xposIn);
   float ypos = static_cast<float>(yposIn);
@@ -284,16 +269,12 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 
 // glfw: whenever the mouse scroll wheel scrolls, this callback is called
 // ----------------------------------------------------------------------
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+void Anthrax::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
   camera.ProcessMouseScroll(static_cast<float>(yoffset));
 }
 
-Window::Window()
-{
-}
-
-bool Window::getKeyPress(Key key)
+bool Anthrax::getKeyPress(Key key)
 {
   switch(key)
   {
@@ -314,7 +295,9 @@ bool Window::getKeyPress(Key key)
   }
 }
 
-} // namespace Anthrax
+void Anthrax::addVoxel(Cube cube)
+{
+  voxel_buffer_.push_back(cube);
+}
 
-#endif // ANTHRAX_WINDOW_CPP
-#define ANTHRAX_WINDOW_CPP
+} // namespace Anthrax

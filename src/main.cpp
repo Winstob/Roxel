@@ -1,32 +1,30 @@
 #include <stdlib.h>
 #include <iostream>
 
-#include "window.cpp"
+#include "anthrax.hpp"
 #include "Player/player.hpp"
 
 
 int main()
 {
-  Anthrax::num_cubes_to_render = 10000;
+  Anthrax::Anthrax *anthrax_handle_ = new Anthrax::Anthrax();
+  int num_cubes_to_render = 10000;
   int x = 100;
-  Anthrax::cubes_to_render = (Anthrax::Cube*)malloc(Anthrax::num_cubes_to_render*sizeof(Anthrax::Cube));
-  int k = 0;
   for (int i = 0; i < x; i++)
   {
-    for (int j = 0; j < Anthrax::num_cubes_to_render/x; j++)
+    for (int j = 0; j < num_cubes_to_render/x; j++)
     {
-      Anthrax::vec4<float> color((float)i/x, (float)0.0, (float)j/(Anthrax::num_cubes_to_render/x), (float)1.0);
+      Anthrax::vec4<float> color((float)i/x, (float)0.0, (float)j/(num_cubes_to_render/x), (float)1.0);
       Anthrax::vec3<int> pos(i-(x/2), -10, j-(x/2));
-      Anthrax::cubes_to_render[k] = Anthrax::Cube(color, pos);
-      k++;
+      anthrax_handle_->addVoxel(Anthrax::Cube(color, pos));
     }
   }
 
-  Player player = Player();
+  Player player = Player(anthrax_handle_);
 
   try
   {
-    Anthrax::startWindow();
+    anthrax_handle_->startWindow();
   }
   catch (std::exception &e)
   {
@@ -54,11 +52,11 @@ int main()
       num_frames = 0;
     }
     num_frames++;
-    window_closed = Anthrax::renderFrame();
+    window_closed = anthrax_handle_->renderFrame();
     player.processInput();
   }
 #endif
 
-  delete(Anthrax::cubes_to_render);
+  delete(anthrax_handle_);
   return 0;
 }
