@@ -16,12 +16,13 @@ int main()
     for (int j = 0; j < num_cubes_to_render/x; j++)
     {
       Anthrax::vec4<float> color((float)i/x, (float)0.0, (float)j/(num_cubes_to_render/x), (float)1.0);
-      Anthrax::vec3<int> pos(i-(x/2), -1, j-(x/2));
+      Anthrax::vec3<int> pos(i-(x/2), -1000, j-(x/2));
       anthrax_handle_->addVoxel(Anthrax::Cube(color, pos));
     }
   }
 
   Player player = Player(anthrax_handle_);
+  player.updateForce("gravity", Anthrax::vec3<float>(0.0, -9.8, 0.0));
 
   try
   {

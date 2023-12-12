@@ -3,9 +3,6 @@
 Player::Player(Anthrax::Anthrax *anthrax_handle)
 {
   anthrax_handle_ = anthrax_handle;
-  x_direction_ = Anthrax::vec3<float>(1.0, 0.0, 0.0);
-  y_direction_ = Anthrax::vec3<float>(0.0, 1.0, 0.0);
-  z_direction_ = Anthrax::vec3<float>(0.0, 0.0, 1.0);
   head_rotation_ = Anthrax::Quaternion(1.0, 0.0, 0.0, 0.0);
   head_position_ = Anthrax::vec3<float>(0.0, 0.0, 0.0);
   left_direction_ = Anthrax::vec3<float>(-1.0, 0.0, 0.0);
@@ -18,12 +15,23 @@ Player::Player(Anthrax::Anthrax *anthrax_handle)
   prev_mouse_pos_ = Anthrax::MousePosition();
   speed_multiplier_ = 1;
   sensitivity_ = 0.01;
+  can_jump_ = false;
+  settings_ = new PlayerSettings();
+  forces_ = new ForceMap();
 }
 
 
 Player::~Player()
 {
   delete(mouse_pos_);
+  delete(settings_);
+  delete(forces_);
+}
+
+
+bool Player::updateForce(std::string name, Anthrax::vec3<float> vector)
+{
+  return forces_->update(name, vector);
 }
 
 
@@ -104,6 +112,9 @@ void Player::processInput()
 
 void Player::update()
 {
+  Anthrax::vec3<float> net_force = forces_->netForce();
+  Anthrax::vec3<float> acceleration = net_force/settings_->getMass();
+  head_position_ += acceleration;
   anthrax_handle_->setCameraPosition(head_position_);
   anthrax_handle_->setCameraRotation(head_rotation_);
 }

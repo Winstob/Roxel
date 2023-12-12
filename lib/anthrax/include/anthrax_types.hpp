@@ -45,6 +45,10 @@ public:
   {
     return vec3<T>(x_*scalar, y_*scalar, z_*scalar);
   }
+  vec3<T> operator/(const T& scalar)
+  {
+    return vec3<T>(x_/scalar, y_/scalar, z_/scalar);
+  }
 
   T getX() const
   {
