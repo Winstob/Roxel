@@ -16,6 +16,7 @@ Player::Player(Anthrax::Anthrax *anthrax_handle)
   down_direction_ = Anthrax::vec3<float>(0.0, -1.0, 0.0);
   mouse_pos_ = new Anthrax::MousePosition();
   prev_mouse_pos_ = Anthrax::MousePosition();
+  speed_multiplier_ = 1;
   sensitivity_ = 0.01;
 }
 
@@ -59,9 +60,8 @@ void Player::processInput()
   if (anthrax_handle_->getKeyPress(Anthrax::Key::LCTRL))
     roll = true;
   move_vector.normalizeHorizontals();
-  move_vector = move_vector*move_multiplier;
+  move_vector = move_vector*move_multiplier*speed_multiplier_;
   head_position_ += move_vector;
-  std::cout << "<" << head_position_.getX() << ", " << head_position_.getY() << ", " << head_position_.getZ() << ">" << std::endl;
 
   // Mouse Inputs
   if (!mouse_paused_)
@@ -76,7 +76,6 @@ void Player::processInput()
     float mouse_y = sensitivity_*(mouse_pos_->getY() - prev_mouse_pos_.getY());
     prev_mouse_pos_.setX(mouse_pos_->getX());
     prev_mouse_pos_.setY(mouse_pos_->getY());
-    std::cout << mouse_y << std::endl;
 
     Anthrax::Quaternion yaw_quaternion = Anthrax::Quaternion(up_direction_, -mouse_x);
     Anthrax::Quaternion pitch_quaternion = Anthrax::Quaternion(head_rotation_.getRightVector(), mouse_y);

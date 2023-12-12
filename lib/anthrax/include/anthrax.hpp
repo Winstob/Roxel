@@ -47,16 +47,14 @@ private:
   Shader* cube_shader = NULL;
 
   // settings
-  static unsigned int SCR_WIDTH;
-  static unsigned int SCR_HEIGHT;
-  static int SPEED;
-  static unsigned int RENDER_DISTANCE;
+  static unsigned int window_width_;
+  static unsigned int window_height_;
+  static unsigned int render_distance_;
 
   // camera
   static Camera camera;
   static float lastX;
   static float lastY;
-  static bool firstMouse;
 
   // timing
   static float deltaTime;	// time between current frame and last frame

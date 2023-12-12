@@ -7,13 +7,11 @@ namespace Anthrax
 // Initialize staic member variables
 GLFWwindow* Anthrax::window;
 Camera Anthrax::camera;
-unsigned int Anthrax::SCR_WIDTH;
-unsigned int Anthrax::SCR_HEIGHT;
-int Anthrax::SPEED;
-unsigned int Anthrax::RENDER_DISTANCE;
+unsigned int Anthrax::window_width_;
+unsigned int Anthrax::window_height_;
+unsigned int Anthrax::render_distance_;
 float Anthrax::lastX;
 float Anthrax::lastY;
-bool Anthrax::firstMouse;
 float Anthrax::deltaTime;
 float Anthrax::lastFrame;
 
@@ -22,13 +20,11 @@ Anthrax::Anthrax()
 {
   window = NULL;
   camera = Camera(glm::vec3(0.0f, 0.0f, 0.0f));
-  SCR_WIDTH = 800;
-  SCR_HEIGHT = 600;
-  SPEED = 50;
-  RENDER_DISTANCE = 10000;
-  lastX = SCR_WIDTH / 2.0f;
-  lastY = SCR_HEIGHT / 2.0f;
-  firstMouse = true;
+  window_width_ = 800;
+  window_height_ = 600;
+  render_distance_ = 10000;
+  lastX = window_width_ / 2.0f;
+  lastY = window_height_ / 2.0f;
   deltaTime = 0.0f;
   lastFrame = 0.0f;
 }
@@ -48,7 +44,8 @@ int Anthrax::startWindow()
 
   // glfw window creation
   // --------------------
-  window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
+  window = glfwCreateWindow(window_width_, window_height_, "Roxel", NULL, NULL);
+  //window = glfwCreateWindow(window_width_, window_height_, "Roxel", glfwGetPrimaryMonitor(), NULL);
   if (window == NULL)
   {
     std::cout << "Failed to create GLFW window" << std::endl;
@@ -133,7 +130,7 @@ int Anthrax::startWindow()
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
   // Wireframe mode
-  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   return 1;
 }
 
@@ -166,7 +163,7 @@ int Anthrax::renderFrame()
     cube_shader->setVec4("color", glm::vec4(current_cube->getColorR(), current_cube->getColorG(), current_cube->getColorB(), current_cube->getColorK()));
 
     // pass projection matrix to shader (note that in this case it could change every frame)
-    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, (float)RENDER_DISTANCE);
+    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)window_width_ / (float)window_height_, 0.1f, (float)render_distance_);
     cube_shader->setMat4("projection", projection);
 
     // camera/view transformation
@@ -214,7 +211,6 @@ int Anthrax::renderFrame()
 // ---------------------------------------------------------------------------------------------------------
 void Anthrax::processInput(GLFWwindow *window)
 {
-  float move_amount = deltaTime * SPEED;
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     glfwSetWindowShouldClose(window, true);
 }
@@ -226,8 +222,8 @@ void Anthrax::framebuffer_size_callback(GLFWwindow* window, int width, int heigh
   // make sure the viewport matches the new window dimensions; note that width and 
   // height will be significantly larger than specified on retina displays.
   glViewport(0, 0, width, height);
-  SCR_WIDTH = width;
-  SCR_HEIGHT = height;
+  window_width_ = width;
+  window_height_ = height;
 }
 
 
@@ -238,20 +234,8 @@ void Anthrax::mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
   float xpos = static_cast<float>(xposIn);
   float ypos = static_cast<float>(yposIn);
 
-  if (firstMouse)
-  {
-    lastX = xpos;
-    lastY = ypos;
-    firstMouse = false;
-  }
-
-  float xoffset = xpos - lastX;
-  float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
-
   lastX = xpos;
   lastY = ypos;
-
-  camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
 // glfw: whenever the mouse scroll wheel scrolls, this callback is called
