@@ -24,6 +24,7 @@ class Anthrax
 public:
   Anthrax();
   static bool getKeyPress(Key key);
+  void getMousePosition(MousePosition *mouse_pos);
 
   static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
   static void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -34,6 +35,8 @@ public:
   int renderFrame();
 
   void addVoxel(Cube cube);
+  void setCameraPosition(vec3<float> position);
+  void setCameraRotation(Quaternion rotation);
 
 
 private:

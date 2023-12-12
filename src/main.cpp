@@ -54,6 +54,7 @@ int main()
     num_frames++;
     window_closed = anthrax_handle_->renderFrame();
     player.processInput();
+    player.update();
   }
 #endif
 

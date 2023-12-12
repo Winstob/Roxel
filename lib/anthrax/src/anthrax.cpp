@@ -21,7 +21,7 @@ float Anthrax::lastFrame;
 Anthrax::Anthrax()
 {
   window = NULL;
-  camera = Camera(glm::vec3(0.0f, 0.0f, 3.0f));
+  camera = Camera(glm::vec3(0.0f, 0.0f, 0.0f));
   SCR_WIDTH = 800;
   SCR_HEIGHT = 600;
   SPEED = 50;
@@ -217,19 +217,6 @@ void Anthrax::processInput(GLFWwindow *window)
   float move_amount = deltaTime * SPEED;
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     glfwSetWindowShouldClose(window, true);
-
-  if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-    camera.ProcessKeyboard(FORWARD, move_amount);
-  if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-    camera.ProcessKeyboard(BACKWARD, move_amount);
-  if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-    camera.ProcessKeyboard(LEFT, move_amount);
-  if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-    camera.ProcessKeyboard(RIGHT, move_amount);
-  if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-    camera.ProcessKeyboard(UP, move_amount);
-  if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-    camera.ProcessKeyboard(DOWN, move_amount);
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
@@ -290,14 +277,32 @@ bool Anthrax::getKeyPress(Key key)
       return (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS);
     case Key::LSHIFT:
       return (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS);
+    case Key::LCTRL:
+      return (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS);
     default:
       return false;
   }
 }
 
+void Anthrax::getMousePosition(MousePosition *mouse_pos)
+{
+  mouse_pos->setX(lastX);
+  mouse_pos->setY(lastY);
+}
+
 void Anthrax::addVoxel(Cube cube)
 {
   voxel_buffer_.push_back(cube);
+}
+
+void Anthrax::setCameraPosition(vec3<float> position)
+{
+  camera.setPosition(glm::vec3(position.getX(), position.getY(), position.getZ()));
+}
+
+void Anthrax::setCameraRotation(Quaternion rotation)
+{
+  camera.setRotation(glm::quat(rotation.getW(), rotation.getX(), rotation.getY(), rotation.getZ()));
 }
 
 } // namespace Anthrax
