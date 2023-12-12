@@ -10,8 +10,8 @@ Camera Anthrax::camera;
 unsigned int Anthrax::window_width_;
 unsigned int Anthrax::window_height_;
 unsigned int Anthrax::render_distance_;
-float Anthrax::lastX;
-float Anthrax::lastY;
+float Anthrax::mouse_x_;
+float Anthrax::mouse_y_;
 float Anthrax::deltaTime;
 float Anthrax::lastFrame;
 
@@ -23,8 +23,8 @@ Anthrax::Anthrax()
   window_width_ = 800;
   window_height_ = 600;
   render_distance_ = 10000;
-  lastX = window_width_ / 2.0f;
-  lastY = window_height_ / 2.0f;
+  mouse_x_ = window_width_ / 2.0f;
+  mouse_y_ = window_height_ / 2.0f;
   deltaTime = 0.0f;
   lastFrame = 0.0f;
 }
@@ -224,6 +224,8 @@ void Anthrax::framebuffer_size_callback(GLFWwindow* window, int width, int heigh
   glViewport(0, 0, width, height);
   window_width_ = width;
   window_height_ = height;
+  mouse_x_ = window_width_ / 2.0f;
+  mouse_y_ = window_height_ / 2.0f;
 }
 
 
@@ -234,8 +236,8 @@ void Anthrax::mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
   float xpos = static_cast<float>(xposIn);
   float ypos = static_cast<float>(yposIn);
 
-  lastX = xpos;
-  lastY = ypos;
+  mouse_x_ = xpos;
+  mouse_y_ = ypos;
 }
 
 // glfw: whenever the mouse scroll wheel scrolls, this callback is called
@@ -270,8 +272,8 @@ bool Anthrax::getKeyPress(Key key)
 
 void Anthrax::getMousePosition(MousePosition *mouse_pos)
 {
-  mouse_pos->setX(lastX);
-  mouse_pos->setY(lastY);
+  mouse_pos->setX(mouse_x_);
+  mouse_pos->setY(mouse_y_);
 }
 
 void Anthrax::addVoxel(Cube cube)

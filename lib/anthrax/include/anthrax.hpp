@@ -25,6 +25,7 @@ public:
   Anthrax();
   static bool getKeyPress(Key key);
   void getMousePosition(MousePosition *mouse_pos);
+  float getTimeSinceLastFrame() const;
 
   static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
   static void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -53,8 +54,8 @@ private:
 
   // camera
   static Camera camera;
-  static float lastX;
-  static float lastY;
+  static float mouse_x_;
+  static float mouse_y_;
 
   // timing
   static float deltaTime;	// time between current frame and last frame
