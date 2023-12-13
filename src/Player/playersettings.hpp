@@ -1,3 +1,8 @@
+/* ---------------------------------------------------------------- *\
+ * playersettings.hpp
+ * Author: Gavin Ralston
+ * Date Created: 2023-12-12
+\* ---------------------------------------------------------------- */
 #ifndef PLAYERSETTINGS_HPP
 #define PLAYERSETTINGS_HPP
 

@@ -1,3 +1,8 @@
+/* ---------------------------------------------------------------- *\
+ * player.cpp
+ * Author: Gavin Ralston
+ * Date Created: 2023-12-10
+\* ---------------------------------------------------------------- */
 #include "player.hpp"
 
 Player::Player(Anthrax::Anthrax *anthrax_handle)

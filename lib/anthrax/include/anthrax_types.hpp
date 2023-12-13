@@ -41,6 +41,10 @@ public:
     *this = this->operator+(other_vec);
     return *this;
   }
+  vec3<T> operator-(const vec3& other_vec)
+  {
+    return vec3<T>(x_-other_vec.x_, y_-other_vec.y_, z_-other_vec.z_);
+  }
   vec3<T> operator*(const T& scalar)
   {
     return vec3<T>(x_*scalar, y_*scalar, z_*scalar);
@@ -70,9 +74,14 @@ public:
     y_ = y;
   }
 
+  float getMagnitude()
+  {
+    return sqrt(x_*x_ + y_*y_ + z_*z_);
+  }
+
   void normalize()
   {
-    float magnitude = sqrt(abs(x_) + abs(y_) + abs(z_));
+    float magnitude = getMagnitude();
     if (magnitude > 0.0)
     {
       x_ = x_/magnitude;
