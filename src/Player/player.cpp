@@ -103,6 +103,7 @@ void Player::processInput()
       head_rotation_ = pitch_quaternion * head_rotation_;
       head_rotation_ = roll_quaternion * head_rotation_;
       up_direction_ = roll_quaternion * up_direction_;
+      down_direction_ = -up_direction_;
     }
 
     right_direction_ = -(head_rotation_.getRightVector());
