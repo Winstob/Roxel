@@ -130,7 +130,7 @@ int Anthrax::startWindow()
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
   // Wireframe mode
-  //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   return 1;
 }
 

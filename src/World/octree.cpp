@@ -29,19 +29,10 @@ Octree::Octree(unsigned int layer, unsigned int file_layer, std::string path, An
 
   if (layer_ == file_layer_)
   {
-    /*
-    voxel_set_ = VoxelSet(layer_);
-    voxel_set_.readFile(path_ + ".zn");
-    is_uniform_ = voxel_set_.isUniform();
-    */
     voxel_set_ = VoxelSet(layer_);
     voxel_set_.readFile(path_ + ".zn");
     is_uniform_ = voxel_set_.isUniform();
   }
- 
-  //if (layer_ > file_layer_)
-  //std::cout << path_ << std::endl;
-  //std::cout << "<" << center_.getX() << ", " << center_.getY() << ", " << center_.getZ() << ">" << std::endl;
 }
 
 
@@ -70,7 +61,6 @@ Octree::~Octree()
 
 void Octree::loadArea(Anthrax::vec3<int64_t> load_center, int load_distance)
 {
-  //std::cout << center_.getX() << std::endl;
   if (is_uniform_ || layer_ == 0)
   {
     return;
@@ -92,11 +82,6 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center, int load_distance)
     {
       min_x = center_.getX() - quadrant_width;
       max_x = center_.getX()-1;
-      /*
-      std::cout << center_.getX() << std::endl;
-      std::cout << (quadrant_width/2) << std::endl;
-      std::cout << (center_.getX() - ceil((float)quadrant_width/2)) << std::endl;
-      */
       quadrant_centers[i].setX(center_.getX() - ceil((float)quadrant_width/2));
     }
     else

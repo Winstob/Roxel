@@ -8,7 +8,8 @@
 Player::Player(Anthrax::Anthrax *anthrax_handle)
 {
   anthrax_handle_ = anthrax_handle;
-  head_rotation_ = Anthrax::Quaternion(1.0, 0.0, 0.0, 0.0);
+  //head_rotation_ = Anthrax::Quaternion(1.0, 0.0, 0.0, 0.0);
+  head_rotation_ = Anthrax::Quaternion(0.7071068, 0.0, 0.7071068, 0.0);
   head_position_ = Anthrax::vec3<float>(0.0, 0.0, 0.0);
   left_direction_ = Anthrax::vec3<float>(-1.0, 0.0, 0.0);
   right_direction_ = Anthrax::vec3<float>(1.0, 0.0, 0.0);
