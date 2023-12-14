@@ -69,9 +69,19 @@ public:
     return z_;
   }
 
+  void setX(T x)
+  {
+    x_ = x;
+  }
+
   void setY(T y)
   {
     y_ = y;
+  }
+
+  void setZ(T z)
+  {
+    z_ = z;
   }
 
   float getMagnitude()

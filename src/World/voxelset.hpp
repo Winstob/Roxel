@@ -27,5 +27,7 @@ private:
   std::vector<uint16_t> voxel_type_; // Stores the type of voxel at a certain index
   std::vector<int> num_voxels_; // Stores the number of same-type voxels in order (more info in world.hpp)
   bool is_uniform_;
+
+  void generateAirFile(std::string filepath);
 };
 #endif // VOXELSET_HPP

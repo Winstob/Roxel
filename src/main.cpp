@@ -28,6 +28,7 @@ int main()
   }
 
   World world = World("world");
+  world.loadArea(Anthrax::vec3<int64_t>(0, 0, 0), 100);
 
   Player player = Player(anthrax_handle_);
   //player.updateForce("gravity", Anthrax::vec3<float>(0.0, -9.8, 0.0));

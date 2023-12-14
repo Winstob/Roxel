@@ -3,11 +3,13 @@
 #include <fstream>
 #include <cstring>
 #include <cmath>
+#include <iostream>
 
 VoxelSet::VoxelSet(int layer)
 {
   layer_ = layer;
-  num_counter_bytes_ = ceil(layer_/8);
+  //num_counter_bytes_ = ceil(3*layer_/8);
+  num_counter_bytes_ = 4;
   voxel_type_  = std::vector<uint16_t>();
   num_voxels_ = std::vector<int>();
   is_uniform_ = false;
@@ -30,17 +32,17 @@ void VoxelSet::readFile(std::string input_filepath)
   if (!std::filesystem::exists(filepath))
   {
     // File doesn't yet exist
-    return;
+    generateAirFile(input_filepath);
   }
   if (std::filesystem::file_size(filepath) == 0)
   {
     // File is empty
-    return;
+    generateAirFile(input_filepath);
   }
   char num_voxels_buffer[num_counter_bytes_];;
   char voxel_type_buffer[2];
   
-  std::ifstream file(input_filepath, std::ios::binary);
+  std::ifstream file(input_filepath);//, std::ios::binary);
   int bytes_read = 0;
   int num_voxels;
   uint16_t voxel_type;
@@ -100,4 +102,16 @@ VoxelSet VoxelSet::getQuadrant(int quadrant)
 
   }
   return VoxelSet(new_num_voxels, new_voxel_type);
+}
+
+
+void VoxelSet::generateAirFile(std::string filepath)
+{
+  std::ofstream file(filepath, std::ios::binary);
+  uint32_t num_voxels = 1 << (3*layer_);
+  uint16_t voxel_type = 0;
+
+  file.write(reinterpret_cast<const char*>(&num_voxels), 4);
+  file.write(reinterpret_cast<const char*>(&voxel_type), 2);
+  file.close();
 }
