@@ -12,7 +12,7 @@ uniform vec4 color;
 
 void main()
 {
-	gl_Position = projection * view * model * vec4(aPos, 1.0f);
+	gl_Position = projection * view * model * vec4(aPos, 1.0f) * vec4(-1.0f, 1.0f, 1.0f, 1.0f);
   vertex_color = color;
 }
 )glsl";

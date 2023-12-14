@@ -82,39 +82,48 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center, int load_distance)
     {
       min_x = center_.getX() - quadrant_width;
       max_x = center_.getX()-1;
-      quadrant_centers[i].setX(center_.getX() - ceil((float)quadrant_width/2));
+      if (layer_ == 1)
+        quadrant_centers[i].setX(center_.getX() - (quadrant_width >> 1) - 1);
+      else
+        quadrant_centers[i].setX(center_.getX() - (quadrant_width >> 1));
     }
     else
     {
       min_x = center_.getX();
       max_x = center_.getX() + quadrant_width-1;
-      quadrant_centers[i].setX(center_.getX() + floor((float)quadrant_width/2));
+      quadrant_centers[i].setX(center_.getX() + (quadrant_width >> 1));
     }
 
     if (i < 4)
     {
       min_y = center_.getY() - quadrant_width;
       max_y = center_.getY()-1;
-      quadrant_centers[i].setY(center_.getY() - ceil((float)quadrant_width/2));
+      if (layer_ == 1)
+        quadrant_centers[i].setY(center_.getY() - (quadrant_width >> 1) - 1);
+      else
+        quadrant_centers[i].setY(center_.getY() - (quadrant_width >> 1));
     }
     else
     {
       min_y = center_.getY();
       max_y = center_.getY() + quadrant_width-1;
-      quadrant_centers[i].setY(center_.getY() + floor((float)quadrant_width/2));
+      quadrant_centers[i].setY(center_.getY() + (quadrant_width >> 1));
     }
  
     if (i == 0 || i == 1 || i == 4 || i == 5)
     {
       min_z = center_.getZ() - quadrant_width;
       max_z = center_.getZ()-1;
-      quadrant_centers[i].setZ(center_.getZ() - ceil((float)quadrant_width/2));
+      if (layer_ == 1)
+        quadrant_centers[i].setZ(center_.getZ() - (quadrant_width >> 1) - 1);
+      else
+        quadrant_centers[i].setZ(center_.getZ() - (quadrant_width >> 1));
     }
     else
     {
       min_z = center_.getZ();
       max_z = center_.getZ() + quadrant_width-1;
-      quadrant_centers[i].setZ(center_.getZ() + floor((float)quadrant_width/2));
+      quadrant_centers[i].setZ(center_.getZ() + (quadrant_width >> 1));
     }
 
     // Now solve for the closest point
@@ -201,7 +210,7 @@ void Octree::getCubes(std::vector<Anthrax::Cube> *cube_vector)
     center.setX(floor(center_.getX()));
     center.setY(floor(center_.getY()));
     center.setZ(floor(center_.getZ()));
-    if (layer_ != 0) center = center + Anthrax::vec3<float>(0.5, 0.5, 0.5);
+    if (layer_ != 0) center = center - Anthrax::vec3<float>(0.5, 0.5, 0.5);
      
     cube_vector->push_back(Anthrax::Cube(Anthrax::vec4<float>(0.5, 0.1, 0.8, 1.0), center, 1 << (layer_)));
     return;

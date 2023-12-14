@@ -27,7 +27,7 @@ public:
   float Zoom;
 
   // constructor with vectors
-  Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::quat rotation = glm::quat(0.7071068f, 0.0, 0.7071068f, 0.0f)) : Zoom(ZOOM)
+  Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::quat rotation = glm::quat(0.0f, 0.0, 0.0f, 0.0f)) : Zoom(ZOOM)
   {
     position_ = position;
     rotation_ = rotation;

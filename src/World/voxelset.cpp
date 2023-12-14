@@ -141,7 +141,7 @@ VoxelSet VoxelSet::getQuadrant(int quadrant)
       new_num_voxels.push_back(next_section_size);
       new_voxel_type.push_back(voxel_type_[index]);
       index++;
-      counter += next_section_size;
+      counter += next_section_size-1;
       continue;
     }
     if (counter + next_section_size-1 >= end)

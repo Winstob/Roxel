@@ -8,8 +8,8 @@
 Player::Player(Anthrax::Anthrax *anthrax_handle)
 {
   anthrax_handle_ = anthrax_handle;
-  //head_rotation_ = Anthrax::Quaternion(1.0, 0.0, 0.0, 0.0);
-  head_rotation_ = Anthrax::Quaternion(0.7071068, 0.0, 0.7071068, 0.0);
+  head_rotation_ = Anthrax::Quaternion(1.0, 0.0, 0.0, 0.0);
+  //head_rotation_ = Anthrax::Quaternion(0.7071068, 0.0, 0.7071068, 0.0);
   head_position_ = Anthrax::vec3<float>(0.0, 0.0, 0.0);
   left_direction_ = Anthrax::vec3<float>(-1.0, 0.0, 0.0);
   right_direction_ = Anthrax::vec3<float>(1.0, 0.0, 0.0);
@@ -91,7 +91,7 @@ void Player::processInput()
     prev_mouse_pos_.setX(mouse_pos_->getX());
     prev_mouse_pos_.setY(mouse_pos_->getY());
 
-    Anthrax::Quaternion yaw_quaternion = Anthrax::Quaternion(up_direction_, -mouse_x);
+    Anthrax::Quaternion yaw_quaternion = Anthrax::Quaternion(up_direction_, mouse_x);
     Anthrax::Quaternion pitch_quaternion = Anthrax::Quaternion(head_rotation_.getRightVector(), mouse_y);
     Anthrax::Quaternion roll_quaternion = Anthrax::Quaternion(head_rotation_.getForwardVector(), mouse_x);
     if (!roll)
@@ -107,9 +107,9 @@ void Player::processInput()
       down_direction_ = -up_direction_;
     }
 
-    right_direction_ = -(head_rotation_.getRightVector());
+    right_direction_ = head_rotation_.getRightVector();
     left_direction_ = -right_direction_;
-    forward_direction_ = -Anthrax::cross(right_direction_, up_direction_);
+    forward_direction_ = Anthrax::cross(right_direction_, up_direction_);
     back_direction_ = -forward_direction_;
   }
   mouse_was_paused_ = mouse_paused_;
@@ -122,6 +122,7 @@ void Player::update()
   Anthrax::vec3<float> net_force = forces_->netForce();
   Anthrax::vec3<float> acceleration = net_force/settings_->getMass();
   head_position_ += acceleration;
+  // std::cout << "<" << head_position_.getX() << ", " << head_position_.getY() << ", " << head_position_.getZ() << ">" << std::endl;
   anthrax_handle_->setCameraPosition(head_position_);
   anthrax_handle_->setCameraRotation(head_rotation_);
 }
