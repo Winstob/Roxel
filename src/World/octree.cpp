@@ -34,11 +34,14 @@ Octree::Octree(unsigned int layer, unsigned int file_layer, std::string path, An
     voxel_set_.readFile(path_ + ".zn");
     is_uniform_ = voxel_set_.isUniform();
     */
+    voxel_set_ = VoxelSet(layer_);
+    voxel_set_.readFile(path_ + ".zn");
+    is_uniform_ = voxel_set_.isUniform();
   }
  
   //if (layer_ > file_layer_)
-  std::cout << path_ << std::endl;
-  std::cout << "<" << center_.getX() << ", " << center_.getY() << ", " << center_.getZ() << ">" << std::endl;
+  //std::cout << path_ << std::endl;
+  //std::cout << "<" << center_.getX() << ", " << center_.getY() << ", " << center_.getZ() << ">" << std::endl;
 }
 
 
@@ -65,7 +68,7 @@ Octree::~Octree()
 void Octree::loadArea(Anthrax::vec3<int64_t> load_center, int load_distance)
 {
   //std::cout << center_.getX() << std::endl;
-  if (is_uniform_)
+  if (is_uniform_ || layer_ == 0)
   {
     return;
   }

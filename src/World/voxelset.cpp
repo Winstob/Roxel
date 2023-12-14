@@ -39,24 +39,23 @@ void VoxelSet::readFile(std::string input_filepath)
     // File is empty
     generateAirFile(input_filepath);
   }
-  char num_voxels_buffer[num_counter_bytes_];;
+  char num_voxels_buffer[4];;
   char voxel_type_buffer[2];
   
-  std::ifstream file(input_filepath);//, std::ios::binary);
-  int bytes_read = 0;
+  std::ifstream file(input_filepath, std::ios::binary);
   int num_voxels;
   uint16_t voxel_type;
-  while (file.good())
+  int counter = 0;
+  while (!file.eof())
   {
-    file.read(num_voxels_buffer, num_counter_bytes_);
-    file.read(voxel_type_buffer, 2);
-    // Assemble num_voxels
-    memcpy(&num_voxels, num_voxels_buffer, num_counter_bytes_);
-    // Assemble voxel_type
-    memcpy(&voxel_type, voxel_type_buffer, 2);
+    file.read(reinterpret_cast<char*>(&num_voxels), 4);
+    if (file.eof()) break;
+    file.read(reinterpret_cast<char*>(&voxel_type), 2);
     num_voxels_.push_back(num_voxels);
     voxel_type_.push_back(voxel_type);
   }
+  file.close();
+  //std::cout << voxel_type_.size() << std::endl;
   if (voxel_type_.size() == 1)
   {
     is_uniform_ = true;
@@ -67,29 +66,38 @@ void VoxelSet::readFile(std::string input_filepath)
 VoxelSet VoxelSet::getQuadrant(int quadrant)
 {
   int set_length = 1 << (3*layer_); // 2^(3*layer_)
+  //std::cout << set_length << std::endl;
   int quadrant_set_length = set_length >> 3; // set_length/8 because there are 8 quadrants
   int start = quadrant * quadrant_set_length;
-  int end = start + quadrant_set_length;
+  int end = start + quadrant_set_length - 1;
 
   int index = 0;
   int counter = 0;
-  while (true)
+  std::vector<uint16_t> new_voxel_type  = std::vector<uint16_t>();
+  std::vector<int> new_num_voxels = std::vector<int>();
+
+  // Move to starting position
+  while (counter != start)
   {
     int next_section_size = num_voxels_[index];
-    if (counter >= start)
-    {
-      break;
-    }
-    counter += next_section_size;
-    if (counter < start)
+    if (counter + next_section_size < start)
     {
       index++;
+      counter += next_section_size;
+      continue;
+    }
+    if (counter + next_section_size > start)
+    {
+      new_num_voxels.push_back(counter + next_section_size - start);
+      new_voxel_type.push_back(voxel_type_[index]);
+      index++;
+      counter = start;
+      continue;
     }
   }
 
-  std::vector<uint16_t> new_voxel_type  = std::vector<uint16_t>();
-  std::vector<int> new_num_voxels = std::vector<int>();
-  while (start < end)
+  // Iterate forwards until end position is reached
+  while (counter < end)
   {
     int next_section_size = num_voxels_[index];
     if (counter + next_section_size < end)
@@ -99,7 +107,13 @@ VoxelSet VoxelSet::getQuadrant(int quadrant)
       counter += next_section_size;
       continue;
     }
-
+    if (counter + next_section_size > start)
+    {
+      new_num_voxels.push_back(counter + next_section_size - end);
+      new_voxel_type.push_back(voxel_type_[index]);
+      counter = end;
+      continue;
+    }
   }
   return VoxelSet(new_num_voxels, new_voxel_type);
 }
