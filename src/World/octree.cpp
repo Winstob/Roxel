@@ -9,7 +9,7 @@
 
 Octree::Octree()
 {
-  Octree(0, 0);
+  Octree(0, 1);
 }
 
 
@@ -47,7 +47,10 @@ Octree::Octree(unsigned int layer, unsigned int file_layer, std::string path, An
 
 Octree::Octree(unsigned int layer, unsigned int file_layer, std::string path, Anthrax::vec3<int64_t> center, VoxelSet voxel_set)
 {
-  Octree(layer, file_layer, path, center);
+  layer_ = layer;
+  file_layer_ = file_layer;
+  center_ = center;
+  path_ = path;
   voxel_set_ = voxel_set;
   is_uniform_ = voxel_set_.isUniform();
 }
@@ -171,7 +174,6 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center, int load_distance)
     Anthrax::vec3<int64_t> closest_point = Anthrax::vec3<int64_t>(closest_x, closest_y, closest_z);
     float distance = (closest_point - load_center).getMagnitude();
     load_quadrant[i] = distance <= load_distance;
-    //std::cout << load_quadrant[i] << std::endl;
   }
 
   if (layer_ <= file_layer_)
@@ -197,9 +199,33 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center, int load_distance)
 
   for (unsigned int i = 0; i < 8; i++)
   {
-    if (children_[i] != NULL)
+    if (load_quadrant[i] && children_[i] != NULL)
     {
       children_[i]->loadArea(load_center, load_distance);
+    }
+  }
+}
+
+
+void Octree::getCubes(std::vector<Anthrax::Cube> *cube_vector)
+{
+  if (is_uniform_)
+  {
+    if (voxel_set_.getVoxelType() == 0) return;
+    Anthrax::vec3<float> center;
+    center.setX(floor(center_.getX()));
+    center.setY(floor(center_.getY()));
+    center.setZ(floor(center_.getZ()));
+    if (layer_ != 0) center = center + Anthrax::vec3<float>(0.5, 0.5, 0.5);
+     
+    cube_vector->push_back(Anthrax::Cube(Anthrax::vec4<float>(0.5, 0.1, 0.8, 1.0), center, 1 << (layer_)));
+    return;
+  }
+  for (unsigned int i = 0; i < 8; i++)
+  {
+    if (children_[i] != NULL)
+    {
+      children_[i]->getCubes(cube_vector);
     }
   }
 }

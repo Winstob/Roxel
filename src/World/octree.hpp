@@ -8,6 +8,7 @@
 
 #include "anthrax_types.hpp"
 #include "voxelset.hpp"
+#include "cube.hpp"
 
 class Octree
 {
@@ -18,6 +19,7 @@ public:
   Octree(unsigned int layer, unsigned int file_layer, std::string path, Anthrax::vec3<int64_t> center, VoxelSet voxel_set);
   ~Octree();
   void loadArea(Anthrax::vec3<int64_t> center, int load_distance);
+  void getCubes(std::vector<Anthrax::Cube> *cube_vector);
 private:
   unsigned int layer_; // The location of this layer - layer 0 will always be a leaf 
   unsigned int file_layer_; // The layer at which files need to be read in

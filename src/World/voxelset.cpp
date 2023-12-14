@@ -1,3 +1,8 @@
+/* ---------------------------------------------------------------- *\
+ * voxelset.hpp
+ * Author: Gavin Ralston
+ * Date Created: 2023-12-13
+\* ---------------------------------------------------------------- */
 #include "voxelset.hpp"
 
 #include <fstream>
@@ -16,15 +21,32 @@ VoxelSet::VoxelSet(int layer)
 }
 
 
-VoxelSet::VoxelSet(std::vector<int> num_voxels, std::vector<uint16_t> voxel_type)
+VoxelSet::VoxelSet(int layer, std::vector<int> num_voxels, std::vector<uint16_t> voxel_type)
 {
-  layer_ = 0;
-  num_counter_bytes_ = 0;
+  layer_ = layer;
+  num_counter_bytes_ = 4;
   num_voxels_ = num_voxels;
   voxel_type_ = voxel_type;
   is_uniform_ = (voxel_type_.size() == 1);
 }
 
+
+VoxelSet& VoxelSet::operator=(const VoxelSet& set)
+{
+  this->layer_ = set.layer_;
+  this->num_counter_bytes_ = set.num_counter_bytes_;
+  this->num_voxels_ = set.num_voxels_;
+  this->voxel_type_ = set.voxel_type_;
+  this->is_uniform_ = set.is_uniform_;
+  return *this;
+}
+
+
+uint16_t VoxelSet::getVoxelType()
+{
+  // If this is a uniform set, return they type of voxel. Otherwise this could lead to unintended behavior.
+  return voxel_type_[0];
+}
 
 void VoxelSet::readFile(std::string input_filepath)
 {
@@ -55,7 +77,6 @@ void VoxelSet::readFile(std::string input_filepath)
     voxel_type_.push_back(voxel_type);
   }
   file.close();
-  //std::cout << voxel_type_.size() << std::endl;
   if (voxel_type_.size() == 1)
   {
     is_uniform_ = true;
@@ -66,7 +87,6 @@ void VoxelSet::readFile(std::string input_filepath)
 VoxelSet VoxelSet::getQuadrant(int quadrant)
 {
   int set_length = 1 << (3*layer_); // 2^(3*layer_)
-  //std::cout << set_length << std::endl;
   int quadrant_set_length = set_length >> 3; // set_length/8 because there are 8 quadrants
   int start = quadrant * quadrant_set_length;
   int end = start + quadrant_set_length - 1;
@@ -80,7 +100,7 @@ VoxelSet VoxelSet::getQuadrant(int quadrant)
   while (counter != start)
   {
     int next_section_size = num_voxels_[index];
-    if (counter + next_section_size < start)
+    if (counter + next_section_size <= start)
     {
       index++;
       counter += next_section_size;
@@ -88,7 +108,15 @@ VoxelSet VoxelSet::getQuadrant(int quadrant)
     }
     if (counter + next_section_size > start)
     {
-      new_num_voxels.push_back(counter + next_section_size - start);
+      int first_section_size = (counter + next_section_size - start);
+      if (first_section_size >= quadrant_set_length)
+      {
+        new_num_voxels.push_back(quadrant_set_length);
+        new_voxel_type.push_back(voxel_type_[index]);
+        counter = end;
+        break;
+      }
+      new_num_voxels.push_back(first_section_size);
       new_voxel_type.push_back(voxel_type_[index]);
       index++;
       counter = start;
@@ -97,25 +125,34 @@ VoxelSet VoxelSet::getQuadrant(int quadrant)
   }
 
   // Iterate forwards until end position is reached
-  while (counter < end)
+  while (counter != end)
   {
+    /*
+    if (index > new_voxel_type.size())
+    {
+      // .zn file has incorrect number of elements
+      index--;
+      continue;
+    }
+    */
     int next_section_size = num_voxels_[index];
-    if (counter + next_section_size < end)
+    if (counter + next_section_size-1 < end)
     {
       new_num_voxels.push_back(next_section_size);
       new_voxel_type.push_back(voxel_type_[index]);
+      index++;
       counter += next_section_size;
       continue;
     }
-    if (counter + next_section_size > start)
+    if (counter + next_section_size-1 >= end)
     {
-      new_num_voxels.push_back(counter + next_section_size - end);
+      new_num_voxels.push_back(end - counter + 1);
       new_voxel_type.push_back(voxel_type_[index]);
       counter = end;
       continue;
     }
   }
-  return VoxelSet(new_num_voxels, new_voxel_type);
+  return VoxelSet(layer_ - 1, new_num_voxels, new_voxel_type);
 }
 
 

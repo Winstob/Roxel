@@ -18,3 +18,9 @@ void World::loadArea(Anthrax::vec3<int64_t> center, int load_distance)
 {
   octree_.loadArea(center, load_distance);
 }
+
+
+void World::getCubes(std::vector<Anthrax::Cube> *cube_vector)
+{
+  octree_.getCubes(cube_vector);
+}

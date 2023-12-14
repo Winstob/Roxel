@@ -177,6 +177,7 @@ int Anthrax::renderFrame()
     // calculate the model matrix for each object and pass it to shader before drawing
     glm::mat4 model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
     model = glm::translate(model, glm::vec3(current_cube->getPosX(), current_cube->getPosY(), current_cube->getPosZ()));
+    model = glm::scale(model, glm::vec3(current_cube->getSize(), current_cube->getSize(), current_cube->getSize()));
     float angle = 0.0f;
     model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
     cube_shader->setMat4("model", model);

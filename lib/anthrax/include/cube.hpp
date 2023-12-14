@@ -10,19 +10,28 @@ class Cube
 {
 private:
   vec4<float> color_;
-  vec3<int> position_;
+  vec3<float> position_;
+  int size_;
 public:
   Cube()
   {
     color_ = vec4<float>(0.0, 0.0, 0.0, 0.0);
-    position_ = vec3<int>(0, 0, 0);
+    position_ = vec3<float>(0.0, 0.0, 0.0);
+    size_ = 1;
   }
 
-
-  Cube(vec4<float> rgbk, vec3<int> pos)
+  Cube(vec4<float> rgbk, vec3<float> pos)
   {
     color_ = rgbk;
     position_ = pos;
+    size_ = 1;
+  }
+
+  Cube(vec4<float> rgbk, vec3<float> pos, int size)
+  {
+    color_ = rgbk;
+    position_ = pos;
+    size_ = size;
   }
 
 
@@ -46,19 +55,24 @@ public:
     return color_.getW();
   }
 
-  int getPosX()
+  float getPosX()
   {
     return position_.getX();
   }
 
-  int getPosY()
+  float getPosY()
   {
     return position_.getY();
   }
 
-  int getPosZ()
+  float getPosZ()
   {
     return position_.getZ();
+  }
+
+  int getSize()
+  {
+    return size_;
   }
 };
 

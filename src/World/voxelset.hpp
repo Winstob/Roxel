@@ -17,7 +17,9 @@ class VoxelSet
 public:
   VoxelSet() { VoxelSet(0); }
   VoxelSet(int layer);
-  VoxelSet(std::vector<int> num_voxels, std::vector<uint16_t> voxel_type);
+  VoxelSet(int layer, std::vector<int> num_voxels, std::vector<uint16_t> voxel_type);
+  VoxelSet& operator=(const VoxelSet& set);
+  uint16_t getVoxelType();
   void readFile(std::string filepath);
   bool isUniform() { return is_uniform_; }
   VoxelSet getQuadrant(int quadrant);
