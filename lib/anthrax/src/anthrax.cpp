@@ -78,6 +78,69 @@ int Anthrax::startWindow()
 
   // set up vertex data (and buffer(s)) and configure vertex attributes
   // ------------------------------------------------------------------
+  float cube_vertices_[] = {
+      -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+       0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+       0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+       0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+      -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+      -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+
+      -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+       0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+       0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+       0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+      -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+      -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+
+      -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+      -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+      -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+      -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+      -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+      -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+
+       0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+       0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+       0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+       0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+       0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+       0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+
+      -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+       0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+       0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+       0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+      -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+      -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+
+      -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+       0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+       0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+       0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+      -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+      -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
+  };
+  glGenVertexArrays(1, &cube_VAO);
+  glGenBuffers(1, &cube_VBO);
+
+  glBindBuffer(GL_ARRAY_BUFFER, cube_VBO);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(cube_vertices_), cube_vertices_, GL_STATIC_DRAW);
+
+  glBindVertexArray(cube_VAO);
+
+  // position attribute
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+  glEnableVertexAttribArray(0);
+  // normal attribute
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+  glEnableVertexAttribArray(1);
+
+  // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+ 
+  /*
+  // I couldn't figure out a way to use normal vectors with this method, but keeping it here in case I do in the future
   float cube_vertices_[24] = {
     // Front face
     -0.5f, -0.5f, -0.5f, // Bottom left
@@ -128,9 +191,10 @@ int Anthrax::startWindow()
 
   // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
   glBindBuffer(GL_ARRAY_BUFFER, 0);
+  */
 
   // Wireframe mode
-  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   return 1;
 }
 
@@ -153,14 +217,32 @@ int Anthrax::renderFrame()
   // ------
   //glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
+
+
   for (int i = 0; i < voxel_buffer_.size(); i++)
   {
     Cube *current_cube = &(voxel_buffer_[i]);
-    // activate shader
-    cube_shader->use();
 
-    // set cube color
-    cube_shader->setVec4("color", glm::vec4(current_cube->getColorR(), current_cube->getColorG(), current_cube->getColorB(), current_cube->getColorK()));
+    // Set up shader
+    cube_shader->use();
+    // Set cube color and opacity
+    cube_shader->setVec3("color", glm::vec3(current_cube->getColorR(), current_cube->getColorG(), current_cube->getColorB()));
+    //cube_shader->setVec3("color", glm::vec3(1.0f));
+    cube_shader->setFloat("opacity", 0.1);//current_cube->getColorK());
+    // Set cube material settings
+    cube_shader->setVec3("material.ambient", glm::vec3(0.19225));
+    cube_shader->setVec3("material.diffuse", glm::vec3(0.50754));
+    cube_shader->setVec3("material.specular", glm::vec3(0.508273));
+    cube_shader->setFloat("material.shininess", 0.4*128);
+
+    // Set camera position
+    cube_shader->setVec3("view_position", camera.position_);
+    // Set sunlight settings
+    cube_shader->setVec3("sunlight.direction", glm::vec3(-1.0f, -0.5f, 0.0f));
+    //cube_shader->setVec3("sunlight.direction", glm::vec3(glm::cos(glfwGetTime()/16), glm::sin(glfwGetTime()/16), 0.0f));
+    cube_shader->setVec3("sunlight.ambient", glm::vec3(1.0));
+    cube_shader->setVec3("sunlight.diffuse", glm::vec3(1.0));
+    cube_shader->setVec3("sunlight.specular", glm::vec3(1.0));
 
     // pass projection matrix to shader (note that in this case it could change every frame)
     glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)window_width_ / (float)window_height_, 0.1f, (float)render_distance_);
@@ -169,6 +251,9 @@ int Anthrax::renderFrame()
     // camera/view transformation
     glm::mat4 view = camera.GetViewMatrix();
     cube_shader->setMat4("view", view);
+
+
+
 
     // render boxes
     glBindVertexArray(cube_VAO);
@@ -182,8 +267,8 @@ int Anthrax::renderFrame()
     model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
     cube_shader->setMat4("model", model);
 
-    //glDrawArrays(GL_TRIANGLES, 0, 36);
-    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+    //glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
   }
 
   // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
