@@ -226,22 +226,27 @@ int Anthrax::renderFrame()
     // Set up shader
     cube_shader->use();
     // Set cube color and opacity
-    cube_shader->setVec3("color", glm::vec3(current_cube->getColorR(), current_cube->getColorG(), current_cube->getColorB()));
-    //cube_shader->setVec3("color", glm::vec3(1.0f));
-    cube_shader->setFloat("opacity", 0.1);//current_cube->getColorK());
+    //cube_shader->setVec3("color", glm::vec3(current_cube->getColorR(), current_cube->getColorG(), current_cube->getColorB()));
+    cube_shader->setFloat("opacity", current_cube->getOpacity());//current_cube->getColorK());
     // Set cube material settings
-    cube_shader->setVec3("material.ambient", glm::vec3(0.19225));
-    cube_shader->setVec3("material.diffuse", glm::vec3(0.50754));
-    cube_shader->setVec3("material.specular", glm::vec3(0.508273));
-    cube_shader->setFloat("material.shininess", 0.4*128);
+    //cube_shader->setVec3("material.ambient", glm::vec3(0.19225));
+    cube_shader->setVec3("material.ambient", current_cube->getAmbient());
+    //cube_shader->setVec3("material.ambient", glm::vec3(0.1, 0.18725, 0.1745));
+    //cube_shader->setVec3("material.diffuse", glm::vec3(0.50754));
+    cube_shader->setVec3("material.diffuse", current_cube->getDiffuse());
+    //cube_shader->setVec3("material.diffuse", glm::vec3(0.396, 0.74151, 0.69102));
+    //cube_shader->setVec3("material.specular", glm::vec3(0.508273));
+    cube_shader->setVec3("material.specular", current_cube->getSpecular());
+    //cube_shader->setVec3("material.specular", glm::vec3(0.297254, 0.30829, 0.306678));
+    cube_shader->setFloat("material.shininess", current_cube->getShininess());
 
     // Set camera position
     cube_shader->setVec3("view_position", camera.position_);
     // Set sunlight settings
-    cube_shader->setVec3("sunlight.direction", glm::vec3(-1.0f, -0.5f, 0.0f));
-    //cube_shader->setVec3("sunlight.direction", glm::vec3(glm::cos(glfwGetTime()/16), glm::sin(glfwGetTime()/16), 0.0f));
-    cube_shader->setVec3("sunlight.ambient", glm::vec3(1.0));
-    cube_shader->setVec3("sunlight.diffuse", glm::vec3(1.0));
+    //cube_shader->setVec3("sunlight.direction", glm::vec3(-1.0f, -0.5f, 0.0f));
+    cube_shader->setVec3("sunlight.direction", glm::vec3(glm::cos(glfwGetTime()/16), glm::sin(glfwGetTime()/16), 0.0f));
+    cube_shader->setVec3("sunlight.ambient", glm::vec3(0.6));
+    cube_shader->setVec3("sunlight.diffuse", glm::vec3(0.7));
     cube_shader->setVec3("sunlight.specular", glm::vec3(1.0));
 
     // pass projection matrix to shader (note that in this case it could change every frame)
@@ -261,7 +266,7 @@ int Anthrax::renderFrame()
     // set cube position
     // calculate the model matrix for each object and pass it to shader before drawing
     glm::mat4 model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
-    model = glm::translate(model, glm::vec3(current_cube->getPosX(), current_cube->getPosY(), current_cube->getPosZ()));
+    model = glm::translate(model, current_cube->getPosition());
     model = glm::scale(model, glm::vec3(current_cube->getSize(), current_cube->getSize(), current_cube->getSize()));
     float angle = 0.0f;
     model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));

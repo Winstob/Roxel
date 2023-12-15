@@ -6,68 +6,74 @@
 namespace Anthrax
 {
 
+
 class Cube
 {
 private:
-  vec4<float> color_;
-  vec3<float> position_;
+  // Phong lighting properties
+  glm::vec3 ambient_;
+  glm::vec3 diffuse_;
+  glm::vec3 specular_;
+  float shininess_;
+  float opacity_;
+  glm::vec3 position_;
   int size_;
 public:
   Cube()
   {
-    color_ = vec4<float>(0.0, 0.0, 0.0, 0.0);
-    position_ = vec3<float>(0.0, 0.0, 0.0);
+    diffuse_ = glm::vec3(0.5f, 0.1f, 0.8f); 
+    ambient_ = gamma_ * diffuse_;
+    specular_ = 1.5f * diffuse_;
+    position_ = glm::vec3(0.0, 0.0, 0.0);
     size_ = 1;
   }
 
-  Cube(vec4<float> rgbk, vec3<float> pos)
+  Cube(vec3<float> pos, int size)
   {
-    color_ = rgbk;
-    position_ = pos;
-    size_ = 1;
-  }
-
-  Cube(vec4<float> rgbk, vec3<float> pos, int size)
-  {
-    color_ = rgbk;
-    position_ = pos;
+    ambient_ = glm::vec3(0.5f, 0.1f, 0.8f); 
+    diffuse_ = glm::vec3(0.5f, 0.1f, 0.8f); 
+    specular_ = glm::vec3(0.5f, 0.5f, 0.5f);
+    shininess_ = 0.1;
+ 
+    position_ = pos.toGLM();
     size_ = size;
   }
 
-
-  float getColorR()
+  Cube(vec3<float> position, int size, vec3<float> ambient, vec3<float> diffuse, vec3<float> specular, float shininess, float opacity)
   {
-    return color_.getX();
+    position_ = position.toGLM();
+    size_ = size;
+    ambient_ = ambient.toGLM();
+    diffuse_ = diffuse.toGLM();
+    specular_ = specular.toGLM();
+    shininess_ = shininess;
+    opacity_ = opacity;
   }
 
-  float getColorG()
+  glm::vec3 getAmbient()
   {
-    return color_.getY();
+    return ambient_;
+  }
+  glm::vec3 getDiffuse()
+  {
+    return diffuse_;
+  }
+  glm::vec3 getSpecular()
+  {
+    return specular_;
+  }
+  float getShininess()
+  {
+    return shininess_;
+  }
+  float getOpacity()
+  {
+    return opacity_;
   }
 
-  float getColorB()
+  glm::vec3 getPosition()
   {
-    return color_.getZ();
-  }
-
-  float getColorK()
-  {
-    return color_.getW();
-  }
-
-  float getPosX()
-  {
-    return position_.getX();
-  }
-
-  float getPosY()
-  {
-    return position_.getY();
-  }
-
-  float getPosZ()
-  {
-    return position_.getZ();
+    return position_;
   }
 
   int getSize()

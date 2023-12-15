@@ -69,6 +69,11 @@ public:
     return z_;
   }
 
+  glm::vec3 toGLM()
+  {
+    return glm::vec3(x_, y_, z_);
+  }
+
   void setX(T x)
   {
     x_ = x;
