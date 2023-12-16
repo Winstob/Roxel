@@ -50,21 +50,17 @@ uint16_t VoxelSet::getVoxelType()
 
 void VoxelSet::readFile(std::string input_filepath)
 {
-  std::filesystem::path filepath{input_filepath};
-  if (!std::filesystem::exists(filepath))
+  std::ifstream file(input_filepath, std::ios::binary);
+
+  if (!file)
   {
     // File doesn't yet exist
     generateAirFile(input_filepath);
-  }
-  if (std::filesystem::file_size(filepath) == 0)
-  {
-    // File is empty
-    generateAirFile(input_filepath);
+    file.open(input_filepath, std::ios::binary);
   }
   char num_voxels_buffer[4];;
   char voxel_type_buffer[2];
   
-  std::ifstream file(input_filepath, std::ios::binary);
   int num_voxels;
   uint16_t voxel_type;
   int counter = 0;

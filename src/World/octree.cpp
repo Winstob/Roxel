@@ -5,6 +5,7 @@
 \* ---------------------------------------------------------------- */
 #include "octree.hpp"
 #include <iostream>
+#include "cubeconvert.hpp"
 
 
 Octree::Octree()
@@ -56,6 +57,11 @@ Octree::~Octree()
       delete(children_[i]);
     }
   }
+}
+
+void Octree::setCubeSettingsFile(std::string file)
+{
+  cube_converter_.setFile(file);
 }
 
 
@@ -213,7 +219,7 @@ void Octree::getCubes(std::vector<Anthrax::Cube> *cube_vector)
     if (layer_ != 0) center = center - Anthrax::vec3<float>(0.5, 0.5, 0.5);
      
     //cube_vector->push_back(Anthrax::Cube(Anthrax::vec4<float>(0.5, 0.1, 0.8, 1.0), center, 1 << (layer_)));
-    cube_vector->push_back(Anthrax::Cube(center, 1 << (layer_)));
+    cube_vector->push_back(cube_converter_.convert(voxel_set_.getVoxelType(), center, 1 << layer_));
     return;
   }
   for (unsigned int i = 0; i < 8; i++)

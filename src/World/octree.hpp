@@ -9,6 +9,7 @@
 #include "anthrax_types.hpp"
 #include "voxelset.hpp"
 #include "cube.hpp"
+#include "cubeconvert.hpp"
 
 class Octree
 {
@@ -18,6 +19,7 @@ public:
   Octree(unsigned int layer, unsigned int file_layer, std::string path, Anthrax::vec3<int64_t> center);
   Octree(unsigned int layer, unsigned int file_layer, std::string path, Anthrax::vec3<int64_t> center, VoxelSet voxel_set);
   ~Octree();
+  void setCubeSettingsFile(std::string file);
   void loadArea(Anthrax::vec3<int64_t> center, int load_distance);
   void getCubes(std::vector<Anthrax::Cube> *cube_vector);
 private:
@@ -29,5 +31,6 @@ private:
   bool is_uniform_; // True if all voxels in all subtrees are of the same type
   Octree *children_[8] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL}; // Pointers to the children
   Anthrax::vec3<int64_t> center_; // The center of the octree - used to find the quadrant of any given location
+  static CubeConvert cube_converter_;
 };
 #endif // OCTREE_HPP

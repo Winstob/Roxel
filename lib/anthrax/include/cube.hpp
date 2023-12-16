@@ -21,9 +21,11 @@ private:
 public:
   Cube()
   {
+    ambient_ = glm::vec3(0.5f, 0.1f, 0.8f); 
     diffuse_ = glm::vec3(0.5f, 0.1f, 0.8f); 
-    ambient_ = gamma_ * diffuse_;
-    specular_ = 1.5f * diffuse_;
+    specular_ = glm::vec3(0.5f, 0.5f, 0.5f);
+    shininess_ = 0.1;
+
     position_ = glm::vec3(0.0, 0.0, 0.0);
     size_ = 1;
   }
