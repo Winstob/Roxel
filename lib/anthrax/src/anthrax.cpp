@@ -236,18 +236,11 @@ int Anthrax::renderFrame()
     // Set up shader
     cube_shader->use();
     // Set cube color and opacity
-    //cube_shader->setVec3("color", glm::vec3(current_cube->getColorR(), current_cube->getColorG(), current_cube->getColorB()));
     cube_shader->setFloat("opacity", current_cube->getOpacity());//current_cube->getColorK());
     // Set cube material settings
-    //cube_shader->setVec3("material.ambient", glm::vec3(0.19225));
     cube_shader->setVec3("material.ambient", current_cube->getAmbient());
-    //cube_shader->setVec3("material.ambient", glm::vec3(0.1, 0.18725, 0.1745));
-    //cube_shader->setVec3("material.diffuse", glm::vec3(0.50754));
     cube_shader->setVec3("material.diffuse", current_cube->getDiffuse());
-    //cube_shader->setVec3("material.diffuse", glm::vec3(0.396, 0.74151, 0.69102));
-    //cube_shader->setVec3("material.specular", glm::vec3(0.508273));
     cube_shader->setVec3("material.specular", current_cube->getSpecular());
-    //cube_shader->setVec3("material.specular", glm::vec3(0.297254, 0.30829, 0.306678));
     cube_shader->setFloat("material.shininess", current_cube->getShininess());
 
     // Set camera position
@@ -255,9 +248,9 @@ int Anthrax::renderFrame()
     // Set sunlight settings
     //cube_shader->setVec3("sunlight.direction", glm::vec3(-1.0f, -0.5f, 0.0f));
     cube_shader->setVec3("sunlight.direction", glm::vec3(glm::cos(glfwGetTime()/16), glm::sin(glfwGetTime()/16), 0.0f));
-    cube_shader->setVec3("sunlight.ambient", glm::vec3(0.6));
-    cube_shader->setVec3("sunlight.diffuse", glm::vec3(0.7));
-    cube_shader->setVec3("sunlight.specular", glm::vec3(1.0));
+    cube_shader->setVec3("sunlight.ambient", glm::vec3(0.8));
+    cube_shader->setVec3("sunlight.diffuse", glm::vec3(1.0));
+    cube_shader->setVec3("sunlight.specular", glm::vec3(0.3));
 
     // pass projection matrix to shader (note that in this case it could change every frame)
     glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)window_width_ / (float)window_height_, 0.1f, (float)render_distance_);
@@ -266,8 +259,6 @@ int Anthrax::renderFrame()
     // camera/view transformation
     glm::mat4 view = camera.GetViewMatrix();
     cube_shader->setMat4("view", view);
-
-
 
 
     // render boxes

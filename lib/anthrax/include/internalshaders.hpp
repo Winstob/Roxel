@@ -64,7 +64,10 @@ void main()
   // Calculate specular light
   vec3 view_direction = normalize(view_pos - fragment_position);
   vec3 reflect_direction = reflect(normalize(sunlight.direction), normal);
-  float spec = pow(max(dot(view_direction, reflect_direction), 0.0), material.shininess * 128);
+  vec3 halfway_direction = normalize(normalize(-sunlight.direction) + view_direction);
+  //float spec = pow(max(dot(view_direction, reflect_direction), 0.0), material.shininess * 128);
+  float spec = pow(max(dot(vertex_normal, halfway_direction), 0.0), material.shininess * 256);
+
   vec3 sunlight_specular = sunlight.specular * (spec * material.specular);
 
   // Calculate Phong model lighting
