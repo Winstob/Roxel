@@ -21,6 +21,13 @@ public:
     y_ = y;
     z_ = z;
   }
+  vec3(T *array)
+  {
+    x_ = *array;
+    y_ = *(array + 1*sizeof(T));
+    z_ = *(array + 2*sizeof(T));
+  }
+
   vec3<T>& operator=(const vec3& vec)
   {
     this->x_ = vec.x_;

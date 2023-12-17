@@ -93,9 +93,14 @@ VoxelSet VoxelSet::getQuadrant(int quadrant)
   std::vector<int> new_num_voxels = std::vector<int>();
 
   // Move to starting position
-  while (counter != start)
+  while (counter < start)
   {
     int next_section_size = num_voxels_[index];
+    if (next_section_size == 0)
+    {
+      index++;
+      continue;
+    }
     if (counter + next_section_size <= start)
     {
       index++;
@@ -109,19 +114,19 @@ VoxelSet VoxelSet::getQuadrant(int quadrant)
       {
         new_num_voxels.push_back(quadrant_set_length);
         new_voxel_type.push_back(voxel_type_[index]);
-        counter = end;
+        counter = start + first_section_size;
         break;
       }
       new_num_voxels.push_back(first_section_size);
       new_voxel_type.push_back(voxel_type_[index]);
       index++;
-      counter = start;
+      counter += next_section_size;
       continue;
     }
   }
 
   // Iterate forwards until end position is reached
-  while (counter != end)
+  while (counter < end + 1)
   {
     /*
     if (index > new_voxel_type.size())
@@ -132,19 +137,24 @@ VoxelSet VoxelSet::getQuadrant(int quadrant)
     }
     */
     int next_section_size = num_voxels_[index];
-    if (counter + next_section_size-1 < end)
+    if (next_section_size == 0)
+    {
+      index++;
+      continue;
+    }
+    if (counter + next_section_size <= end + 1)
     {
       new_num_voxels.push_back(next_section_size);
       new_voxel_type.push_back(voxel_type_[index]);
       index++;
-      counter += next_section_size-1;
+      counter += next_section_size;
       continue;
     }
-    if (counter + next_section_size-1 >= end)
+    if (counter + next_section_size > end + 1)
     {
-      new_num_voxels.push_back(end - counter + 1);
+      new_num_voxels.push_back(end + 1 - counter);
       new_voxel_type.push_back(voxel_type_[index]);
-      counter = end;
+      counter += next_section_size;
       continue;
     }
   }
