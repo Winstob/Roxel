@@ -22,6 +22,7 @@ World::World(std::string directory)
 void World::loadArea(Anthrax::vec3<int64_t> center, int load_distance)
 {
   octree_.loadArea(center, load_distance);
+  octree_.getNewNeighbors();
 }
 
 

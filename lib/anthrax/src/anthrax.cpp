@@ -200,7 +200,7 @@ int Anthrax::startWindow()
   */
 
   // Wireframe mode
-  // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
   // Face culling
   glEnable(GL_CULL_FACE);
@@ -269,8 +269,8 @@ int Anthrax::renderFrame()
     glm::mat4 model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
     model = glm::translate(model, current_cube->getPosition());
     model = glm::scale(model, glm::vec3(current_cube->getSize(), current_cube->getSize(), current_cube->getSize()));
-    float angle = 0.0f;
-    model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+    //float angle = 0.0f;
+    //model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
     cube_shader->setMat4("model", model);
 
     glDrawArrays(GL_TRIANGLES, 0, 36);

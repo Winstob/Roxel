@@ -18,11 +18,12 @@ private:
   float opacity_;
   glm::vec3 position_;
   int size_;
+  bool render_face_[6]; // Which faces to render: {left(-x normal), right(+x normal, bottom(-y normal, top(+y normal), front(-z normal), back(+z normal)}
 public:
   Cube()
   {
-    ambient_ = glm::vec3(0.5f, 0.1f, 0.8f); 
-    diffuse_ = glm::vec3(0.5f, 0.1f, 0.8f); 
+    ambient_ = glm::vec3(0.5f, 0.1f, 0.8f);
+    diffuse_ = glm::vec3(0.5f, 0.1f, 0.8f);
     specular_ = glm::vec3(0.5f, 0.5f, 0.5f);
     shininess_ = 0.1;
 
@@ -50,6 +51,24 @@ public:
     specular_ = specular.toGLM();
     shininess_ = shininess;
     opacity_ = opacity;
+  }
+
+  void setFaces(bool front, bool back, bool left, bool right, bool top, bool bottom)
+  {
+    render_face_[0] = front;
+    render_face_[1] = back;
+    render_face_[2] = left;
+    render_face_[3] = right;
+    render_face_[4] = top;
+    render_face_[5] = bottom;
+  }
+
+  void setFaces(bool *faces)
+  {
+    for (unsigned int i = 0; i < 6; i++)
+    {
+      render_face_[i] = faces[i];
+    }
   }
 
   glm::vec3 getAmbient()
