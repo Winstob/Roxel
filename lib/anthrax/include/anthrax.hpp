@@ -39,8 +39,19 @@ public:
   void setCameraPosition(vec3<float> position);
   void setCameraRotation(Quaternion rotation);
 
+  enum RenderType
+  {
+    NO_SHADOWS,
+    DYNAMIC_SHADOWS,
+    RAYTRACED
+  };
+
 
 private:
+  void renderScene();
+
+  RenderType render_type_;
+
   std::vector<Cube> voxel_buffer_;
 
   static GLFWwindow* window;

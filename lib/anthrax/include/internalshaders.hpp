@@ -26,7 +26,6 @@ void main()
 const std::string cube_fragment_shader = R"glsl(
 #version 330 core
 
-in float vertex_opacity;
 in vec3 vertex_normal;
 in vec3 fragment_position;
 in vec3 view_pos;
@@ -45,11 +44,11 @@ struct Material
   vec3 diffuse;
   vec3 specular;
   float shininess;
+  float opacity;
 };
 
 uniform DirectLight sunlight;
 uniform Material material;
-uniform float opacity;
 
 void main()
 {
@@ -73,6 +72,6 @@ void main()
   // Calculate Phong model lighting
   vec3 phong = sunlight_ambient + sunlight_diffuse + sunlight_specular;
 
-  gl_FragColor = vec4(phong, vertex_opacity);
+  gl_FragColor = vec4(phong, material.opacity);
 }
 )glsl";

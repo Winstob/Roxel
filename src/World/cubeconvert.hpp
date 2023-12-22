@@ -24,7 +24,6 @@ public:
   {
     std::ifstream file(filename);
     file >> conversion_map_;
-    //std::cout << conversion_map_["1"]["name"] << std::endl;
   }
   void setFile(std::string filename)
   {
@@ -37,12 +36,13 @@ public:
     std::vector<float> ambient = conversion_map_[id_string]["ambient"];
     std::vector<float> diffuse = conversion_map_[id_string]["ambient"];
     std::vector<float> specular = conversion_map_[id_string]["ambient"];
-    return Anthrax::Cube(position,
-          size,
-          Anthrax::vec3<float>(ambient[0], ambient[1], ambient[2]),
-          Anthrax::vec3<float>(diffuse[0], diffuse[1], diffuse[2]),
-          Anthrax::vec3<float>(specular[0], specular[1], specular[2]),
-          conversion_map_[id_string]["shininess"], conversion_map_[id_string]["opacity"]);
+    return Anthrax::Cube(id,
+        position,
+        size,
+        Anthrax::vec3<float>(ambient[0], ambient[1], ambient[2]),
+        Anthrax::vec3<float>(diffuse[0], diffuse[1], diffuse[2]),
+        Anthrax::vec3<float>(specular[0], specular[1], specular[2]),
+        conversion_map_[id_string]["shininess"], conversion_map_[id_string]["opacity"]);
   }
 private:
   json conversion_map_;

@@ -16,6 +16,8 @@ class Cube
 public:
   Cube()
   {
+    type_id_ = 65535;
+
     ambient_ = glm::vec3(0.5f, 0.1f, 0.8f);
     diffuse_ = glm::vec3(0.5f, 0.1f, 0.8f);
     specular_ = glm::vec3(0.5f, 0.5f, 0.5f);
@@ -27,6 +29,8 @@ public:
 
   Cube(vec3<float> pos, int size)
   {
+    type_id_ = 65535;
+
     ambient_ = glm::vec3(0.5f, 0.1f, 0.8f); 
     diffuse_ = glm::vec3(0.5f, 0.1f, 0.8f); 
     specular_ = glm::vec3(0.5f, 0.5f, 0.5f);
@@ -36,8 +40,9 @@ public:
     size_ = size;
   }
 
-  Cube(vec3<float> position, int size, vec3<float> ambient, vec3<float> diffuse, vec3<float> specular, float shininess, float opacity)
+  Cube(uint16_t type_id, vec3<float> position, int size, vec3<float> ambient, vec3<float> diffuse, vec3<float> specular, float shininess, float opacity)
   {
+    type_id_ = type_id;
     position_ = position.toGLM();
     size_ = size;
     ambient_ = ambient.toGLM();
@@ -53,12 +58,12 @@ public:
 
   void setFaces(bool left, bool right, bool bottom, bool top, bool front, bool back)
   {
-    render_face_[0] = front;
-    render_face_[1] = back;
-    render_face_[2] = left;
-    render_face_[3] = right;
-    render_face_[4] = top;
-    render_face_[5] = bottom;
+    render_face_[0] = left;
+    render_face_[1] = right;
+    render_face_[2] = bottom;
+    render_face_[3] = top;
+    render_face_[4] = front;
+    render_face_[5] = back;
   }
 
   void setFaces(bool *faces)
@@ -100,9 +105,15 @@ public:
     return size_;
   }
 
+  uint16_t getTypeID()
+  {
+    return type_id_;
+  }
+
   bool render_face_[6] = {false, false, false, false, false, false}; // Which faces to render: {left(-x normal), right(+x normal, bottom(-y normal, top(+y normal), front(-z normal), back(+z normal)}
 
 private:
+  uint16_t type_id_= 0;
   // Phong lighting properties
   glm::vec3 ambient_;
   glm::vec3 diffuse_;

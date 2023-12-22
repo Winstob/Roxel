@@ -78,14 +78,6 @@ int Anthrax::startWindow()
 
   // set up vertex data (and buffer(s)) and configure vertex attributes
   // ------------------------------------------------------------------
-
-  // position attribute
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-  glEnableVertexAttribArray(0);
-  // normal attribute
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-  glEnableVertexAttribArray(1);
-
   // Left face
   glGenVertexArrays(1, &left_face_vao_);
   glGenBuffers(1, &left_face_vbo_);
@@ -206,8 +198,8 @@ int Anthrax::startWindow()
   */
 
   // Wireframe mode
-  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
+  //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  
   // Face culling
   glEnable(GL_CULL_FACE);
   glCullFace(GL_BACK);
@@ -234,78 +226,7 @@ int Anthrax::renderFrame()
   //glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 
-
-  for (int i = 0; i < voxel_buffer_.size(); i++)
-  {
-    Cube *current_cube = &(voxel_buffer_[i]);
-
-    // Set up shader
-    cube_shader->use();
-    // Set cube color and opacity
-    cube_shader->setFloat("opacity", current_cube->getOpacity());//current_cube->getColorK());
-    // Set cube material settings
-    cube_shader->setVec3("material.ambient", current_cube->getAmbient());
-    cube_shader->setVec3("material.diffuse", current_cube->getDiffuse());
-    cube_shader->setVec3("material.specular", current_cube->getSpecular());
-    cube_shader->setFloat("material.shininess", current_cube->getShininess());
-
-    // Set camera position
-    cube_shader->setVec3("view_position", camera.position_);
-    // Set sunlight settings
-    //cube_shader->setVec3("sunlight.direction", glm::vec3(-1.0f, -0.5f, 0.0f));
-    cube_shader->setVec3("sunlight.direction", glm::vec3(glm::cos(glfwGetTime()/16), glm::sin(glfwGetTime()/16), 0.0f));
-    cube_shader->setVec3("sunlight.ambient", glm::vec3(0.8));
-    cube_shader->setVec3("sunlight.diffuse", glm::vec3(1.0));
-    cube_shader->setVec3("sunlight.specular", glm::vec3(0.3));
-
-    // pass projection matrix to shader (note that in this case it could change every frame)
-    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)window_width_ / (float)window_height_, 0.1f, (float)render_distance_);
-    cube_shader->setMat4("projection", projection);
-
-    // camera/view transformation
-    glm::mat4 view = camera.GetViewMatrix();
-    cube_shader->setMat4("view", view);
-
-    for (unsigned int i = 0; i < 6; i++)
-    {
-      if (!(current_cube->render_face_[i])) continue;
-
-      // render boxes
-      switch (i)
-      {
-        case 0:
-          glBindVertexArray(left_face_vao_);
-          break;
-        case 1:
-          glBindVertexArray(right_face_vao_);
-          break;
-        case 2:
-          glBindVertexArray(bottom_face_vao_);
-          break;
-        case 3:
-          glBindVertexArray(top_face_vao_);
-          break;
-        case 4:
-          glBindVertexArray(front_face_vao_);
-          break;
-        case 5:
-          glBindVertexArray(back_face_vao_);
-          break;
-      }
-
-      // set cube position
-      // calculate the model matrix for each object and pass it to shader before drawing
-      glm::mat4 model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
-      model = glm::translate(model, current_cube->getPosition());
-      model = glm::scale(model, glm::vec3(current_cube->getSize(), current_cube->getSize(), current_cube->getSize()));
-      //float angle = 0.0f;
-      //model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-      cube_shader->setMat4("model", model);
-
-      glDrawArrays(GL_TRIANGLES, 0, 6);
-      //glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-    }
-  }
+  renderScene();
 
   // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
   // -------------------------------------------------------------------------------
@@ -337,6 +258,93 @@ int Anthrax::renderFrame()
     return 1;
   }
   return 0;
+}
+
+
+void Anthrax::renderScene()
+{
+  // Set up shader
+  cube_shader->use();
+
+  // Camera/view settings
+  // Set camera position
+  cube_shader->setVec3("view_position", camera.position_);
+  // Camera/view transformation
+  glm::mat4 view = camera.GetViewMatrix();
+  cube_shader->setMat4("view", view);
+  // Pass projection matrix to shader (note that in this case it could change every frame)
+  glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)window_width_ / (float)window_height_, 0.1f, (float)render_distance_);
+  cube_shader->setMat4("projection", projection);
+
+  // Set sunlight settings
+  //cube_shader->setVec3("sunlight.direction", glm::vec3(-1.0f, -0.5f, 0.0f));
+  cube_shader->setVec3("sunlight.direction", glm::vec3(glm::cos(glfwGetTime()/16), glm::sin(glfwGetTime()/16), 0.0f));
+  cube_shader->setVec3("sunlight.ambient", glm::vec3(0.8));
+  cube_shader->setVec3("sunlight.diffuse", glm::vec3(1.0));
+  cube_shader->setVec3("sunlight.specular", glm::vec3(0.3));
+
+
+  uint16_t prev_cube_type = 0;
+  bool first_frame = true;
+  for (int i = 0; i < voxel_buffer_.size(); i++)
+  {
+    Cube *current_cube = &(voxel_buffer_[i]);
+
+    if (first_frame || prev_cube_type != current_cube->getTypeID())
+    {
+      first_frame = false;
+      prev_cube_type = current_cube->getTypeID();
+
+      // Set cube material settings
+      cube_shader->setVec3("material.ambient", current_cube->getAmbient());
+      cube_shader->setVec3("material.diffuse", current_cube->getDiffuse());
+      cube_shader->setVec3("material.specular", current_cube->getSpecular());
+      cube_shader->setFloat("material.shininess", current_cube->getShininess());
+      cube_shader->setFloat("material.opacity", current_cube->getOpacity());//current_cube->getColorK());
+    }
+
+    // set cube position
+    // calculate the model matrix for each object and pass it to shader before drawing
+    glm::mat4 model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
+    model = glm::translate(model, current_cube->getPosition());
+    model = glm::scale(model, glm::vec3(current_cube->getSize(), current_cube->getSize(), current_cube->getSize()));
+    //float angle = 0.0f;
+    //model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+    cube_shader->setMat4("model", model);
+
+    for (unsigned int i = 0; i < 6; i++)
+    {
+      if (!(current_cube->render_face_[i])) continue;
+
+      // render boxes
+      switch (i)
+      {
+        case 0:
+          glBindVertexArray(left_face_vao_);
+          break;
+        case 1:
+          glBindVertexArray(right_face_vao_);
+          break;
+        case 2:
+          glBindVertexArray(bottom_face_vao_);
+          break;
+        case 3:
+          glBindVertexArray(top_face_vao_);
+          break;
+        case 4:
+          glBindVertexArray(front_face_vao_);
+          break;
+        case 5:
+          glBindVertexArray(back_face_vao_);
+          break;
+      }
+
+      glDrawArrays(GL_TRIANGLES, 0, 6);
+      //glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    }
+  }
+
+
 }
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly

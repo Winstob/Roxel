@@ -234,7 +234,7 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center, int load_distance)
       is_transparent = true;
       break;
     }
-    if (children_[i]->faceIsTransparent(i-1))
+    if (children_[i]->faceIsTransparent(0))
     {
       is_transparent = true;
       break;
@@ -249,7 +249,7 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center, int load_distance)
       is_transparent = true;
       break;
     }
-    if (children_[i]->faceIsTransparent(i+1))
+    if (children_[i]->faceIsTransparent(1))
     {
       is_transparent = true;
       break;
@@ -264,7 +264,7 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center, int load_distance)
       is_transparent = true;
       break;
     }
-    if (children_[i]->faceIsTransparent(i-4))
+    if (children_[i]->faceIsTransparent(2))
     {
       is_transparent = true;
       break;
@@ -279,7 +279,7 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center, int load_distance)
       is_transparent = true;
       break;
     }
-    if (children_[i]->faceIsTransparent(i+4))
+    if (children_[i]->faceIsTransparent(3))
     {
       is_transparent = true;
       break;
@@ -294,7 +294,7 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center, int load_distance)
       is_transparent = true;
       break;
     }
-    if (children_[i]->faceIsTransparent(i-2))
+    if (children_[i]->faceIsTransparent(4))
     {
       is_transparent = true;
       break;
@@ -309,7 +309,7 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center, int load_distance)
       is_transparent = true;
       break;
     }
-    if (children_[i]->faceIsTransparent(i+2))
+    if (children_[i]->faceIsTransparent(5))
     {
       is_transparent = true;
       break;
