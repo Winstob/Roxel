@@ -29,6 +29,18 @@ int main()
   }
   */
 
+  try
+  {
+    anthrax_handle_->startWindow();
+  }
+  catch (std::exception &e)
+  {
+    std::cout << e.what() << std::endl;
+  }
+  bool window_closed = false;
+
+
+
   World world = World("world");
   world.loadArea(Anthrax::vec3<int64_t>(0, 0, 0), 1000);
 
@@ -41,16 +53,6 @@ int main()
 
   Player player = Player(anthrax_handle_);
   //player.updateForce("gravity", Anthrax::vec3<float>(0.0, -9.8, 0.0));
-
-  try
-  {
-    anthrax_handle_->startWindow();
-  }
-  catch (std::exception &e)
-  {
-    std::cout << e.what() << std::endl;
-  }
-  bool window_closed = false;
 
 #ifndef WIN32
   time_t time_frame_start;

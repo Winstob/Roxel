@@ -1,7 +1,11 @@
 #ifndef CUBE_HPP
 #define CUBE_HPP
 
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+
 #include "anthrax_types.hpp"
+#include <algorithm>
 
 namespace Anthrax
 {
@@ -9,16 +13,6 @@ namespace Anthrax
 
 class Cube
 {
-private:
-  // Phong lighting properties
-  glm::vec3 ambient_;
-  glm::vec3 diffuse_;
-  glm::vec3 specular_;
-  float shininess_;
-  float opacity_;
-  glm::vec3 position_;
-  int size_;
-  bool render_face_[6]; // Which faces to render: {left(-x normal), right(+x normal, bottom(-y normal, top(+y normal), front(-z normal), back(+z normal)}
 public:
   Cube()
   {
@@ -53,7 +47,11 @@ public:
     opacity_ = opacity;
   }
 
-  void setFaces(bool front, bool back, bool left, bool right, bool top, bool bottom)
+  ~Cube()
+  {
+  }
+
+  void setFaces(bool left, bool right, bool bottom, bool top, bool front, bool back)
   {
     render_face_[0] = front;
     render_face_[1] = back;
@@ -101,6 +99,20 @@ public:
   {
     return size_;
   }
+
+  bool render_face_[6] = {false, false, false, false, false, false}; // Which faces to render: {left(-x normal), right(+x normal, bottom(-y normal, top(+y normal), front(-z normal), back(+z normal)}
+
+private:
+  // Phong lighting properties
+  glm::vec3 ambient_;
+  glm::vec3 diffuse_;
+  glm::vec3 specular_;
+  float shininess_;
+
+  float opacity_;
+  glm::vec3 position_;
+  int size_;
+
 };
 
 } // namespace Anthrax

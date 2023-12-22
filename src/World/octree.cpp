@@ -403,17 +403,6 @@ void Octree::setNeighbors(Octree **neighbors)
 
 void Octree::getCubes(std::vector<Anthrax::Cube> *cube_vector)
 {
-  if (layer_ == 0)
-  {
-    // This shouldn't happen unless this is the only layer in the world (single-block-world)
-    if (voxel_set_.getVoxelType() == 0) return;
-    Anthrax::vec3<float> center;
-    center.setX(floor(center_.getX()));
-    center.setY(floor(center_.getY()));
-    center.setZ(floor(center_.getZ()));
-    cube_vector->push_back(cube_converter_.convert(voxel_set_.getVoxelType(), center, 1 << layer_));
-    return;
-  }
   if (is_uniform_)
   {
     if (voxel_set_.getVoxelType() == 0) return;
@@ -421,7 +410,9 @@ void Octree::getCubes(std::vector<Anthrax::Cube> *cube_vector)
     center.setX(floor(center_.getX()));
     center.setY(floor(center_.getY()));
     center.setZ(floor(center_.getZ()));
-    center = center - Anthrax::vec3<float>(0.5, 0.5, 0.5);
+    if (!(layer_ == 0)) center = center - Anthrax::vec3<float>(0.5, 0.5, 0.5);
+
+    //cube_vector->push_back(cube_converter_.convert(voxel_set_.getVoxelType(), center, 1 << layer_));
      
     //cube_vector->push_back(Anthrax::Cube(Anthrax::vec4<float>(0.5, 0.1, 0.8, 1.0), center, 1 << (layer_)));
     bool render_face[6];
@@ -431,6 +422,7 @@ void Octree::getCubes(std::vector<Anthrax::Cube> *cube_vector)
       if (neighbors_[i] == NULL)
       {
         render_face[i] = true;
+        render_cube = true;
         continue;
       }
       //render_face[i] = neighbors_[i]->faceIsTransparent(i%2 == 0 ? i+1 : i-1);

@@ -78,62 +78,6 @@ int Anthrax::startWindow()
 
   // set up vertex data (and buffer(s)) and configure vertex attributes
   // ------------------------------------------------------------------
-  float cube_vertices_[] = {
-    // Front face
-    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
-     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
-     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
-    -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
-    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
-
-    // Back face
-    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-
-    // Left face
-    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-    -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-    -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-
-    // Right face
-     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-     0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-     0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-     0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-     0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-
-     // Bottom face
-    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-
-    // Top face
-    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-     0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
-  };
-  glGenVertexArrays(1, &cube_VAO);
-  glGenBuffers(1, &cube_VBO);
-
-  glBindBuffer(GL_ARRAY_BUFFER, cube_VBO);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(cube_vertices_), cube_vertices_, GL_STATIC_DRAW);
-
-  glBindVertexArray(cube_VAO);
 
   // position attribute
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
@@ -141,6 +85,68 @@ int Anthrax::startWindow()
   // normal attribute
   glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
   glEnableVertexAttribArray(1);
+
+  // Left face
+  glGenVertexArrays(1, &left_face_vao_);
+  glGenBuffers(1, &left_face_vbo_);
+  glBindBuffer(GL_ARRAY_BUFFER, left_face_vbo_);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(left_face_vertices_), left_face_vertices_, GL_STATIC_DRAW);
+  glBindVertexArray(left_face_vao_);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+  glEnableVertexAttribArray(1);
+  // Right face
+  glGenVertexArrays(1, &right_face_vao_);
+  glGenBuffers(1, &right_face_vbo_);
+  glBindBuffer(GL_ARRAY_BUFFER, right_face_vbo_);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(right_face_vertices_), right_face_vertices_, GL_STATIC_DRAW);
+  glBindVertexArray(right_face_vao_);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+  glEnableVertexAttribArray(1);
+  // Bottom face
+  glGenVertexArrays(1, &bottom_face_vao_);
+  glGenBuffers(1, &bottom_face_vbo_);
+  glBindBuffer(GL_ARRAY_BUFFER, bottom_face_vbo_);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(bottom_face_vertices_), bottom_face_vertices_, GL_STATIC_DRAW);
+  glBindVertexArray(bottom_face_vao_);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+  glEnableVertexAttribArray(1);
+  // Top face
+  glGenVertexArrays(1, &top_face_vao_);
+  glGenBuffers(1, &top_face_vbo_);
+  glBindBuffer(GL_ARRAY_BUFFER, top_face_vbo_);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(top_face_vertices_), top_face_vertices_, GL_STATIC_DRAW);
+  glBindVertexArray(top_face_vao_);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+  glEnableVertexAttribArray(1);
+  // Front face
+  glGenVertexArrays(1, &front_face_vao_);
+  glGenBuffers(1, &front_face_vbo_);
+  glBindBuffer(GL_ARRAY_BUFFER, front_face_vbo_);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(front_face_vertices_), front_face_vertices_, GL_STATIC_DRAW);
+  glBindVertexArray(front_face_vao_);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+  glEnableVertexAttribArray(1);
+  // Back face
+  glGenVertexArrays(1, &back_face_vao_);
+  glGenBuffers(1, &back_face_vbo_);
+  glBindBuffer(GL_ARRAY_BUFFER, back_face_vbo_);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(back_face_vertices_), back_face_vertices_, GL_STATIC_DRAW);
+  glBindVertexArray(back_face_vao_);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+  glEnableVertexAttribArray(1);
+
 
   // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
   glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -260,21 +266,45 @@ int Anthrax::renderFrame()
     glm::mat4 view = camera.GetViewMatrix();
     cube_shader->setMat4("view", view);
 
+    for (unsigned int i = 0; i < 6; i++)
+    {
+      if (!(current_cube->render_face_[i])) continue;
 
-    // render boxes
-    glBindVertexArray(cube_VAO);
+      // render boxes
+      switch (i)
+      {
+        case 0:
+          glBindVertexArray(left_face_vao_);
+          break;
+        case 1:
+          glBindVertexArray(right_face_vao_);
+          break;
+        case 2:
+          glBindVertexArray(bottom_face_vao_);
+          break;
+        case 3:
+          glBindVertexArray(top_face_vao_);
+          break;
+        case 4:
+          glBindVertexArray(front_face_vao_);
+          break;
+        case 5:
+          glBindVertexArray(back_face_vao_);
+          break;
+      }
 
-    // set cube position
-    // calculate the model matrix for each object and pass it to shader before drawing
-    glm::mat4 model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
-    model = glm::translate(model, current_cube->getPosition());
-    model = glm::scale(model, glm::vec3(current_cube->getSize(), current_cube->getSize(), current_cube->getSize()));
-    //float angle = 0.0f;
-    //model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-    cube_shader->setMat4("model", model);
+      // set cube position
+      // calculate the model matrix for each object and pass it to shader before drawing
+      glm::mat4 model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
+      model = glm::translate(model, current_cube->getPosition());
+      model = glm::scale(model, glm::vec3(current_cube->getSize(), current_cube->getSize(), current_cube->getSize()));
+      //float angle = 0.0f;
+      //model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+      cube_shader->setMat4("model", model);
 
-    glDrawArrays(GL_TRIANGLES, 0, 36);
-    //glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+      glDrawArrays(GL_TRIANGLES, 0, 6);
+      //glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    }
   }
 
   // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
@@ -286,9 +316,19 @@ int Anthrax::renderFrame()
   {
     // optional: de-allocate all resources once they've outlived their purpose:
     // ------------------------------------------------------------------------
-    glDeleteVertexArrays(1, &cube_VAO);
-    glDeleteBuffers(1, &cube_VBO);
-    glDeleteBuffers(1, &cube_EBO);
+    glDeleteVertexArrays(1, &left_face_vao_);
+    glDeleteBuffers(1, &left_face_vbo_);
+    glDeleteVertexArrays(1, &right_face_vao_);
+    glDeleteBuffers(1, &right_face_vbo_);
+    glDeleteVertexArrays(1, &bottom_face_vao_);
+    glDeleteBuffers(1, &bottom_face_vbo_);
+    glDeleteVertexArrays(1, &top_face_vao_);
+    glDeleteBuffers(1, &top_face_vbo_);
+    glDeleteVertexArrays(1, &front_face_vao_);
+    glDeleteBuffers(1, &front_face_vbo_);
+    glDeleteVertexArrays(1, &back_face_vao_);
+    glDeleteBuffers(1, &back_face_vbo_);
+    //glDeleteBuffers(1, &cube_EBO);
     delete(cube_shader);
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
