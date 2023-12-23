@@ -15,6 +15,7 @@
 
 #include "anthrax_types.hpp"
 #include <vector>
+#include <map>
 
 namespace Anthrax
 {
@@ -30,6 +31,7 @@ public:
   static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
   static void mouse_callback(GLFWwindow* window, double xpos, double ypos);
   static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+  static void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
   static void processInput(GLFWwindow *window);
 
   int startWindow();
@@ -46,6 +48,7 @@ public:
     RAYTRACED
   };
 
+  std::map<uint16_t, std::vector<Cube>> voxel_buffer_map_;
 
 private:
   void renderScene();
@@ -73,6 +76,8 @@ private:
   // timing
   static float deltaTime;	// time between current frame and last frame
   static float lastFrame;
+
+  static bool wireframe_mode_;
 
   const float front_face_vertices_[36] =
   {

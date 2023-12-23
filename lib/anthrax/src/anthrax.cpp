@@ -14,6 +14,7 @@ float Anthrax::mouse_x_;
 float Anthrax::mouse_y_;
 float Anthrax::deltaTime;
 float Anthrax::lastFrame;
+bool Anthrax::wireframe_mode_;
 
 
 Anthrax::Anthrax()
@@ -27,6 +28,7 @@ Anthrax::Anthrax()
   mouse_y_ = window_height_ / 2.0f;
   deltaTime = 0.0f;
   lastFrame = 0.0f;
+  wireframe_mode_ = false;
 }
 
 int Anthrax::startWindow()
@@ -56,6 +58,7 @@ int Anthrax::startWindow()
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
   glfwSetCursorPosCallback(window, mouse_callback);
   glfwSetScrollCallback(window, scroll_callback);
+  glfwSetKeyCallback(window, key_callback);
 
   // tell GLFW to capture our mouse
   glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -284,67 +287,80 @@ void Anthrax::renderScene()
   cube_shader->setVec3("sunlight.specular", glm::vec3(0.3));
 
 
-  uint16_t prev_cube_type = 0;
-  bool first_frame = true;
-  for (int i = 0; i < voxel_buffer_.size(); i++)
+  for (std::map<uint16_t, std::vector<Cube>>::iterator itr = voxel_buffer_map_.begin(); itr != voxel_buffer_map_.end(); itr++)
   {
-    Cube *current_cube = &(voxel_buffer_[i]);
+    std::vector<Cube> current_cubes = itr->second;
+    if (current_cubes.size() < 1) continue;
 
-    if (first_frame || prev_cube_type != current_cube->getTypeID())
+    // Set cube material settings
+    cube_shader->setVec3("material.ambient", current_cubes[0].getAmbient());
+    cube_shader->setVec3("material.diffuse", current_cubes[0].getDiffuse());
+    cube_shader->setVec3("material.specular", current_cubes[0].getSpecular());
+    cube_shader->setFloat("material.shininess", current_cubes[0].getShininess());
+    cube_shader->setFloat("material.opacity", current_cubes[0].getOpacity());//current_cube->getColorK());
+    for (int i = 0; i < current_cubes.size(); i++)
     {
-      first_frame = false;
-      prev_cube_type = current_cube->getTypeID();
+      Cube *current_cube = &(current_cubes[i]);
+      // set cube position
+      // calculate the model matrix for each object and pass it to shader before drawing
+      glm::mat4 model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
+      model = glm::translate(model, current_cube->getPosition());
+      model = glm::scale(model, glm::vec3(current_cube->getSize(), current_cube->getSize(), current_cube->getSize()));
+      //float angle = 0.0f;
+      //model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+      cube_shader->setMat4("model", model);
 
-      // Set cube material settings
-      cube_shader->setVec3("material.ambient", current_cube->getAmbient());
-      cube_shader->setVec3("material.diffuse", current_cube->getDiffuse());
-      cube_shader->setVec3("material.specular", current_cube->getSpecular());
-      cube_shader->setFloat("material.shininess", current_cube->getShininess());
-      cube_shader->setFloat("material.opacity", current_cube->getOpacity());//current_cube->getColorK());
-    }
-
-    // set cube position
-    // calculate the model matrix for each object and pass it to shader before drawing
-    glm::mat4 model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
-    model = glm::translate(model, current_cube->getPosition());
-    model = glm::scale(model, glm::vec3(current_cube->getSize(), current_cube->getSize(), current_cube->getSize()));
-    //float angle = 0.0f;
-    //model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-    cube_shader->setMat4("model", model);
-
-    for (unsigned int i = 0; i < 6; i++)
-    {
-      if (!(current_cube->render_face_[i])) continue;
-
-      // render boxes
-      switch (i)
+      for (unsigned int i = 0; i < 6; i++)
       {
-        case 0:
-          glBindVertexArray(left_face_vao_);
-          break;
-        case 1:
-          glBindVertexArray(right_face_vao_);
-          break;
-        case 2:
-          glBindVertexArray(bottom_face_vao_);
-          break;
-        case 3:
-          glBindVertexArray(top_face_vao_);
-          break;
-        case 4:
-          glBindVertexArray(front_face_vao_);
-          break;
-        case 5:
-          glBindVertexArray(back_face_vao_);
-          break;
-      }
+        if (!(current_cube->render_face_[i])) continue;
 
-      glDrawArrays(GL_TRIANGLES, 0, 6);
-      //glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+        // render boxes
+        switch (i)
+        {
+          case 0:
+            glBindVertexArray(left_face_vao_);
+            break;
+          case 1:
+            glBindVertexArray(right_face_vao_);
+            break;
+          case 2:
+            glBindVertexArray(bottom_face_vao_);
+            break;
+          case 3:
+            glBindVertexArray(top_face_vao_);
+            break;
+          case 4:
+            glBindVertexArray(front_face_vao_);
+            break;
+          case 5:
+            glBindVertexArray(back_face_vao_);
+            break;
+        }
+
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        //glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+      }
     }
   }
 
 
+}
+
+void Anthrax::key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
+{
+  if (key == GLFW_KEY_0 && action  == GLFW_PRESS)
+  {
+    if (wireframe_mode_)
+    {
+      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+      wireframe_mode_ = false;
+    }
+    else
+    {
+      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+      wireframe_mode_ = true;
+    }
+  }
 }
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
