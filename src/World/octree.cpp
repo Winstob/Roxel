@@ -242,6 +242,7 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center, int load_distance)
   }
   transparent_face_[0] = is_transparent;
   // Left face
+  is_transparent = false;
   for (int i = 0; i < 8; i+=2)
   {
     if (children_[i] == NULL)
@@ -257,6 +258,7 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center, int load_distance)
   }
   transparent_face_[1] = is_transparent;
   // Top face
+  is_transparent = false;
   for (int i = 4; i < 8; i++)
   {
     if (children_[i] == NULL)
@@ -272,6 +274,7 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center, int load_distance)
   }
   transparent_face_[2] = is_transparent;
   // Bottom face
+  is_transparent = false;
   for (int i = 0; i < 4; i++)
   {
     if (children_[i] == NULL)
@@ -287,6 +290,7 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center, int load_distance)
   }
   transparent_face_[3] = is_transparent;
   // Back face
+  is_transparent = false;
   for (int i = 2; i < 8; i+=(i%2)*2+1)
   {
     if (children_[i] == NULL)
@@ -302,6 +306,7 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center, int load_distance)
   }
   transparent_face_[4] = is_transparent;
   // Front face
+  is_transparent = false;
   for (int i = 0; i < 6; i+=(i%2)*2+1)
   {
     if (children_[i] == NULL)
