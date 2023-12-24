@@ -4,11 +4,12 @@ const std::string cube_vertex_shader = R"glsl(
 #version 330 core
 layout (location = 0) in vec3 position;
 layout (location = 1) in vec3 normal;
+layout (location = 2) in mat4 model;
+
 out vec3 vertex_normal;
 out vec3 fragment_position;
 out vec3 view_pos;
 
-uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 uniform vec3 view_position;

@@ -298,48 +298,116 @@ void Anthrax::renderScene()
     cube_shader->setVec3("material.specular", current_cubes[0].getSpecular());
     cube_shader->setFloat("material.shininess", current_cubes[0].getShininess());
     cube_shader->setFloat("material.opacity", current_cubes[0].getOpacity());//current_cube->getColorK());
+
+    std::vector<glm::mat4> left_transform;
+    std::vector<glm::mat4> right_transform;
+    std::vector<glm::mat4> bottom_transform;
+    std::vector<glm::mat4> top_transform;
+    std::vector<glm::mat4> front_transform;
+    std::vector<glm::mat4> back_transform;
+
     for (int i = 0; i < current_cubes.size(); i++)
     {
       Cube *current_cube = &(current_cubes[i]);
-      // set cube position
-      // calculate the model matrix for each object and pass it to shader before drawing
+
+      // set cube position and scale
       glm::mat4 model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
       model = glm::translate(model, current_cube->getPosition());
-      model = glm::scale(model, glm::vec3(current_cube->getSize(), current_cube->getSize(), current_cube->getSize()));
-      //float angle = 0.0f;
-      //model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-      cube_shader->setMat4("model", model);
-
+      model = glm::scale(model, glm::vec3(current_cube->getSize()));
+ 
       for (unsigned int i = 0; i < 6; i++)
       {
         if (!(current_cube->render_face_[i])) continue;
 
-        // render boxes
+        std::vector<glm::mat4> *transform;
         switch (i)
         {
           case 0:
-            glBindVertexArray(left_face_vao_);
+            transform = &left_transform;
             break;
           case 1:
-            glBindVertexArray(right_face_vao_);
+            transform = &right_transform;
             break;
           case 2:
-            glBindVertexArray(bottom_face_vao_);
+            transform = &bottom_transform;
             break;
           case 3:
-            glBindVertexArray(top_face_vao_);
+            transform = &top_transform;
             break;
           case 4:
-            glBindVertexArray(front_face_vao_);
+            transform = &front_transform;
             break;
           case 5:
-            glBindVertexArray(back_face_vao_);
+            transform = &back_transform;
             break;
         }
+        transform->push_back(model);
 
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-        //glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
       }
+    }
+
+    for (unsigned int i = 0; i < 6; i++)
+    {
+      unsigned int model_vbo, num_faces;
+      glGenBuffers(1, &model_vbo);
+      glBindBuffer(GL_ARRAY_BUFFER, model_vbo);
+
+      // render boxes
+      switch (i)
+      {
+        case 0:
+          glBindVertexArray(left_face_vao_);
+          glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4)*left_transform.size(), &left_transform[0], GL_STATIC_DRAW);
+          num_faces = left_transform.size();
+          break;
+        case 1:
+          glBindVertexArray(right_face_vao_);
+          glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4)*right_transform.size(), &right_transform[0], GL_STATIC_DRAW);
+          num_faces = right_transform.size();
+          break;
+        case 2:
+          glBindVertexArray(bottom_face_vao_);
+          glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4)*bottom_transform.size(), &bottom_transform[0], GL_STATIC_DRAW);
+          num_faces = bottom_transform.size();
+          break;
+        case 3:
+          glBindVertexArray(top_face_vao_);
+          glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4)*top_transform.size(), &top_transform[0], GL_STATIC_DRAW);
+          num_faces = top_transform.size();
+          break;
+        case 4:
+          glBindVertexArray(front_face_vao_);
+          glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4)*front_transform.size(), &front_transform[0], GL_STATIC_DRAW);
+          num_faces = front_transform.size();
+          break;
+        case 5:
+          glBindVertexArray(back_face_vao_);
+          glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4)*back_transform.size(), &back_transform[0], GL_STATIC_DRAW);
+          num_faces = back_transform.size();
+          break;
+
+      }
+
+      glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
+      glEnableVertexAttribArray(2);
+      glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(1*sizeof(glm::vec4)));
+      glEnableVertexAttribArray(3);
+      glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2*sizeof(glm::vec4)));
+      glEnableVertexAttribArray(4);
+      glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3*sizeof(glm::vec4)));
+      glEnableVertexAttribArray(5);
+
+      glVertexAttribDivisor(2, 1);
+      glVertexAttribDivisor(3, 1);
+      glVertexAttribDivisor(4, 1);
+      glVertexAttribDivisor(5, 1);
+
+
+      glDrawArraysInstanced(GL_TRIANGLES, 0, 6, num_faces);
+      glBindVertexArray(0);
+      glDeleteBuffers(1, &model_vbo);
+      //glDrawArrays(GL_TRIANGLES, 0, 6);
+      //glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
     }
   }
 
