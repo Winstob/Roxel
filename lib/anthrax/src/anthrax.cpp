@@ -403,7 +403,7 @@ void Anthrax::renderScene()
       glVertexAttribDivisor(5, 1);
 
 
-      glDrawArraysInstanced(GL_TRIANGLES, 0, 6, num_faces);
+      glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, num_faces);
       glBindVertexArray(0);
       glDeleteBuffers(1, &model_vbo);
       //glDrawArrays(GL_TRIANGLES, 0, 6);
