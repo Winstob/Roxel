@@ -292,12 +292,11 @@ void Anthrax::renderScene()
     std::vector<Cube> current_cubes = itr->second;
     if (current_cubes.size() < 1) continue;
 
-    // Set cube material settings
-    cube_shader->setVec3("material.ambient", current_cubes[0].getAmbient());
-    cube_shader->setVec3("material.diffuse", current_cubes[0].getDiffuse());
-    cube_shader->setVec3("material.specular", current_cubes[0].getSpecular());
-    cube_shader->setFloat("material.shininess", current_cubes[0].getShininess());
-    cube_shader->setFloat("material.opacity", current_cubes[0].getOpacity());//current_cube->getColorK());
+    // Get cube material settings
+    glm::vec3 color = current_cubes[0].getColor();
+    float reflectivity = current_cubes[0].getReflectivity();
+    float shininess = current_cubes[0].getShininess();
+    float opacity = current_cubes[0].getOpacity();
 
     std::vector<glm::mat4> left_transform;
     std::vector<glm::mat4> right_transform;
@@ -352,41 +351,51 @@ void Anthrax::renderScene()
       glGenBuffers(1, &model_vbo);
       glBindBuffer(GL_ARRAY_BUFFER, model_vbo);
 
+      std::vector<glm::mat4> *transform;
+
       // render boxes
       switch (i)
       {
         case 0:
           glBindVertexArray(left_face_vao_);
-          glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4)*left_transform.size(), &left_transform[0], GL_STATIC_DRAW);
+          transform = &left_transform;
           num_faces = left_transform.size();
           break;
         case 1:
           glBindVertexArray(right_face_vao_);
-          glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4)*right_transform.size(), &right_transform[0], GL_STATIC_DRAW);
+          transform = &right_transform;
           num_faces = right_transform.size();
           break;
         case 2:
           glBindVertexArray(bottom_face_vao_);
-          glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4)*bottom_transform.size(), &bottom_transform[0], GL_STATIC_DRAW);
+          transform = &bottom_transform;
           num_faces = bottom_transform.size();
           break;
         case 3:
           glBindVertexArray(top_face_vao_);
-          glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4)*top_transform.size(), &top_transform[0], GL_STATIC_DRAW);
+          transform = &top_transform;
           num_faces = top_transform.size();
           break;
         case 4:
           glBindVertexArray(front_face_vao_);
-          glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4)*front_transform.size(), &front_transform[0], GL_STATIC_DRAW);
+          transform = &front_transform;
           num_faces = front_transform.size();
           break;
         case 5:
           glBindVertexArray(back_face_vao_);
-          glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4)*back_transform.size(), &back_transform[0], GL_STATIC_DRAW);
+          transform = &back_transform;
           num_faces = back_transform.size();
           break;
 
       }
+      //glBufferData(GL_ARRAY_BUFFER, (sizeof(glm::mat4)+sizeof(glm::vec3)+3*sizeof(float))*(*transform).size(), NULL, GL_STATIC_DRAW);
+      glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4)*transform->size(), NULL, GL_STATIC_DRAW);
+
+      glBufferSubData(GL_ARRAY_BUFFER, 0, transform->size()*sizeof(glm::mat4), &((*transform)[0]));
+      glBufferSubData(GL_ARRAY_BUFFER, transform->size()*sizeof(glm::mat4), sizeof(glm::vec3), &color);
+      glBufferSubData(GL_ARRAY_BUFFER, transform->size()*sizeof(glm::mat4)+sizeof(glm::vec3), sizeof(float), &reflectivity);
+      glBufferSubData(GL_ARRAY_BUFFER, transform->size()*sizeof(glm::mat4)+sizeof(glm::vec3)+1*sizeof(float), sizeof(float), &shininess);
+      glBufferSubData(GL_ARRAY_BUFFER, transform->size()*sizeof(glm::mat4)+sizeof(glm::vec3)+2*sizeof(float), sizeof(float), &opacity);
 
       glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
       glEnableVertexAttribArray(2);
@@ -401,6 +410,12 @@ void Anthrax::renderScene()
       glVertexAttribDivisor(3, 1);
       glVertexAttribDivisor(4, 1);
       glVertexAttribDivisor(5, 1);
+
+      // Lighting/color settings
+      glVertexAttrib3f(6, color.x, color.y, color.z);
+      glVertexAttrib1f(7, reflectivity);
+      glVertexAttrib1f(8, shininess);
+      glVertexAttrib1f(9, opacity);
 
 
       glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, num_faces);

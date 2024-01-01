@@ -33,16 +33,14 @@ public:
   Anthrax::Cube convert(int id, Anthrax::vec3<float> position, int size)
   {
     std::string id_string = std::to_string(id);
-    std::vector<float> ambient = conversion_map_[id_string]["ambient"];
-    std::vector<float> diffuse = conversion_map_[id_string]["ambient"];
-    std::vector<float> specular = conversion_map_[id_string]["ambient"];
+    std::vector<float> color = conversion_map_[id_string]["color"];
     return Anthrax::Cube(id,
         position,
         size,
-        Anthrax::vec3<float>(ambient[0], ambient[1], ambient[2]),
-        Anthrax::vec3<float>(diffuse[0], diffuse[1], diffuse[2]),
-        Anthrax::vec3<float>(specular[0], specular[1], specular[2]),
-        conversion_map_[id_string]["shininess"], conversion_map_[id_string]["opacity"]);
+        Anthrax::vec3<float>(color[0], color[1], color[2]),
+        conversion_map_[id_string]["reflectivity"],
+        conversion_map_[id_string]["shininess"],
+        conversion_map_[id_string]["opacity"]);
   }
 private:
   json conversion_map_;

@@ -18,10 +18,10 @@ public:
   {
     type_id_ = 65535;
 
-    ambient_ = glm::vec3(0.5f, 0.1f, 0.8f);
-    diffuse_ = glm::vec3(0.5f, 0.1f, 0.8f);
-    specular_ = glm::vec3(0.5f, 0.5f, 0.5f);
+    color_ = glm::vec3(0.5f, 0.1f, 0.8f);
+    reflectivity_ = 0.3;
     shininess_ = 0.1;
+    opacity_ = 1.0;
 
     position_ = glm::vec3(0.0, 0.0, 0.0);
     size_ = 1;
@@ -31,23 +31,22 @@ public:
   {
     type_id_ = 65535;
 
-    ambient_ = glm::vec3(0.5f, 0.1f, 0.8f); 
-    diffuse_ = glm::vec3(0.5f, 0.1f, 0.8f); 
-    specular_ = glm::vec3(0.5f, 0.5f, 0.5f);
+    color_ = glm::vec3(0.5f, 0.1f, 0.8f);
+    reflectivity_ = 0.3;
     shininess_ = 0.1;
+    opacity_ = 1.0;
  
     position_ = pos.toGLM();
     size_ = size;
   }
 
-  Cube(uint16_t type_id, vec3<float> position, int size, vec3<float> ambient, vec3<float> diffuse, vec3<float> specular, float shininess, float opacity)
+  Cube(uint16_t type_id, vec3<float> position, int size, vec3<float> color, float reflectivity, float shininess, float opacity)
   {
     type_id_ = type_id;
     position_ = position.toGLM();
     size_ = size;
-    ambient_ = ambient.toGLM();
-    diffuse_ = diffuse.toGLM();
-    specular_ = specular.toGLM();
+    color_ = color.toGLM();
+    reflectivity_ = reflectivity;
     shininess_ = shininess;
     opacity_ = opacity;
   }
@@ -74,17 +73,13 @@ public:
     }
   }
 
-  glm::vec3 getAmbient()
+  glm::vec3 getColor()
   {
-    return ambient_;
+    return color_;
   }
-  glm::vec3 getDiffuse()
+  float getReflectivity()
   {
-    return diffuse_;
-  }
-  glm::vec3 getSpecular()
-  {
-    return specular_;
+    return reflectivity_;
   }
   float getShininess()
   {
@@ -114,13 +109,13 @@ public:
 
 private:
   uint16_t type_id_= 0;
-  // Phong lighting properties
-  glm::vec3 ambient_;
-  glm::vec3 diffuse_;
-  glm::vec3 specular_;
-  float shininess_;
 
+  // Phong lighting properties
+  glm::vec3 color_;
+  float reflectivity_;
+  float shininess_;
   float opacity_;
+
   glm::vec3 position_;
   int size_;
 
