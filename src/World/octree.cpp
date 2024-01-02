@@ -406,7 +406,7 @@ void Octree::setNeighbors(Octree **neighbors)
 }
 
 
-void Octree::getCubes(std::map<uint16_t, std::vector<Anthrax::Cube>> *cube_map)
+void Octree::getCubes(std::vector<Anthrax::Cube> *cube_vector)
 {
   if (is_uniform_)
   {
@@ -437,15 +437,15 @@ void Octree::getCubes(std::map<uint16_t, std::vector<Anthrax::Cube>> *cube_map)
     if (!render_cube) return; // No faces are visible, so don't draw this cube
     Anthrax::Cube cube = cube_converter_.convert(voxel_set_.getVoxelType(), center, 1 << layer_);
     cube.setFaces(render_face);
-    //cube_vector->push_back(cube);
-    (*cube_map)[cube.getTypeID()].push_back(cube);
+    cube_vector->push_back(cube);
+    //(*cube_map)[cube.getTypeID()].push_back(cube);
     return;
   }
   for (unsigned int i = 0; i < 8; i++)
   {
     if (children_[i] != NULL)
     {
-      children_[i]->getCubes(cube_map);
+      children_[i]->getCubes(cube_vector);
     }
   }
 }

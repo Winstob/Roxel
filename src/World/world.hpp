@@ -57,7 +57,7 @@ class World
 public:
   World(std::string directory);
   void loadArea(Anthrax::vec3<int64_t> center, int load_distance);
-  void getCubes(std::map<uint16_t, std::vector<Anthrax::Cube>> *cube_map);
+  void getCubes(std::vector<Anthrax::Cube> *cube_vector);
 private:
   const unsigned int num_layers_ = 32; // Number of layers in the octree - total world size in one axis is equal to 2^num_layers_
   const unsigned int zone_depth_ = 8; // Layer number of a zone - this determines the size of a zone 

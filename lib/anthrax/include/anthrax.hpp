@@ -48,7 +48,7 @@ public:
     RAYTRACED
   };
 
-  std::map<uint16_t, std::vector<Cube>> voxel_buffer_map_;
+  //std::map<uint16_t, std::vector<Cube>> voxel_buffer_map_;
 
 private:
   void renderScene();
@@ -61,6 +61,7 @@ private:
   unsigned int cube_VBO, cube_VAO, cube_EBO;
   unsigned int left_face_vbo_, right_face_vbo_, top_face_vbo_, bottom_face_vbo_, front_face_vbo_, back_face_vbo_;
   unsigned int left_face_vao_, right_face_vao_, top_face_vao_, bottom_face_vao_, front_face_vao_, back_face_vao_;
+  unsigned int voxel_vbo_, voxel_vao_;
   Shader* cube_shader = NULL;
 
   // settings

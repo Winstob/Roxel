@@ -25,7 +25,7 @@ public:
   void loadArea(Anthrax::vec3<int64_t> center, int load_distance);
   void getNewNeighbors();
   void setNeighbors(Octree **neighbors);
-  void getCubes(std::map<uint16_t, std::vector<Anthrax::Cube>> *cube_map);
+  void getCubes(std::vector<Anthrax::Cube> *cube_vector);
   bool isUniform() { return is_uniform_; }
   uint16_t getVoxelType() { return voxel_set_.getVoxelType(); }
   bool faceIsTransparent(uint8_t face) { return transparent_face_[face]; }

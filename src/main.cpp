@@ -44,16 +44,17 @@ int main()
   World world = World("world");
   world.loadArea(Anthrax::vec3<int64_t>(0, 0, 0), 1000);
 
-  std::map<uint16_t, std::vector<Anthrax::Cube>> cube_map;
+  //std::map<uint16_t, std::vector<Anthrax::Cube>> cube_map;
+  std::vector<Anthrax::Cube> cube_vector;
+  /*
   world.getCubes(&cube_map);
   anthrax_handle_->voxel_buffer_map_ = cube_map;
-  /*
+  */
   world.getCubes(&cube_vector);
-  for (unsigned int i = 0; i < cube_map.size(); i++)
+  for (unsigned int i = 0; i < cube_vector.size(); i++)
   {
     anthrax_handle_->addVoxel(cube_vector[i]);
   }
-  */
 
   Player player = Player(anthrax_handle_);
   //player.updateForce("gravity", Anthrax::vec3<float>(0.0, -9.8, 0.0));

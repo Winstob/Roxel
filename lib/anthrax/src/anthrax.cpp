@@ -77,70 +77,18 @@ int Anthrax::startWindow()
 
   // build and compile our shader zprogram
   // ------------------------------------
-  cube_shader = new Shader(Shader::ShaderInputType::CODESTRING, cube_vertex_shader.c_str(), cube_fragment_shader.c_str());
+  cube_shader = new Shader(Shader::ShaderInputType::CODESTRING, cube_vertex_shader.c_str(), cube_fragment_shader.c_str(), cube_geometry_shader.c_str());
 
   // set up vertex data (and buffer(s)) and configure vertex attributes
   // ------------------------------------------------------------------
-  // Left face
-  glGenVertexArrays(1, &left_face_vao_);
-  glGenBuffers(1, &left_face_vbo_);
-  glBindBuffer(GL_ARRAY_BUFFER, left_face_vbo_);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(left_face_vertices_), left_face_vertices_, GL_STATIC_DRAW);
-  glBindVertexArray(left_face_vao_);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+  float point [3] = { 0.0, 0.0, 0.0 };
+  glGenVertexArrays(1, &voxel_vao_);
+  glGenBuffers(1, &voxel_vbo_);
+  glBindBuffer(GL_ARRAY_BUFFER, voxel_vbo_);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(point), point, GL_STATIC_DRAW);
+  glBindVertexArray(voxel_vao_);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
   glEnableVertexAttribArray(0);
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-  glEnableVertexAttribArray(1);
-  // Right face
-  glGenVertexArrays(1, &right_face_vao_);
-  glGenBuffers(1, &right_face_vbo_);
-  glBindBuffer(GL_ARRAY_BUFFER, right_face_vbo_);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(right_face_vertices_), right_face_vertices_, GL_STATIC_DRAW);
-  glBindVertexArray(right_face_vao_);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-  glEnableVertexAttribArray(0);
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-  glEnableVertexAttribArray(1);
-  // Bottom face
-  glGenVertexArrays(1, &bottom_face_vao_);
-  glGenBuffers(1, &bottom_face_vbo_);
-  glBindBuffer(GL_ARRAY_BUFFER, bottom_face_vbo_);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(bottom_face_vertices_), bottom_face_vertices_, GL_STATIC_DRAW);
-  glBindVertexArray(bottom_face_vao_);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-  glEnableVertexAttribArray(0);
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-  glEnableVertexAttribArray(1);
-  // Top face
-  glGenVertexArrays(1, &top_face_vao_);
-  glGenBuffers(1, &top_face_vbo_);
-  glBindBuffer(GL_ARRAY_BUFFER, top_face_vbo_);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(top_face_vertices_), top_face_vertices_, GL_STATIC_DRAW);
-  glBindVertexArray(top_face_vao_);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-  glEnableVertexAttribArray(0);
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-  glEnableVertexAttribArray(1);
-  // Front face
-  glGenVertexArrays(1, &front_face_vao_);
-  glGenBuffers(1, &front_face_vbo_);
-  glBindBuffer(GL_ARRAY_BUFFER, front_face_vbo_);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(front_face_vertices_), front_face_vertices_, GL_STATIC_DRAW);
-  glBindVertexArray(front_face_vao_);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-  glEnableVertexAttribArray(0);
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-  glEnableVertexAttribArray(1);
-  // Back face
-  glGenVertexArrays(1, &back_face_vao_);
-  glGenBuffers(1, &back_face_vbo_);
-  glBindBuffer(GL_ARRAY_BUFFER, back_face_vbo_);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(back_face_vertices_), back_face_vertices_, GL_STATIC_DRAW);
-  glBindVertexArray(back_face_vao_);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-  glEnableVertexAttribArray(0);
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-  glEnableVertexAttribArray(1);
 
 
   // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
@@ -240,18 +188,8 @@ int Anthrax::renderFrame()
   {
     // optional: de-allocate all resources once they've outlived their purpose:
     // ------------------------------------------------------------------------
-    glDeleteVertexArrays(1, &left_face_vao_);
-    glDeleteBuffers(1, &left_face_vbo_);
-    glDeleteVertexArrays(1, &right_face_vao_);
-    glDeleteBuffers(1, &right_face_vbo_);
-    glDeleteVertexArrays(1, &bottom_face_vao_);
-    glDeleteBuffers(1, &bottom_face_vbo_);
-    glDeleteVertexArrays(1, &top_face_vao_);
-    glDeleteBuffers(1, &top_face_vbo_);
-    glDeleteVertexArrays(1, &front_face_vao_);
-    glDeleteBuffers(1, &front_face_vbo_);
-    glDeleteVertexArrays(1, &back_face_vao_);
-    glDeleteBuffers(1, &back_face_vbo_);
+    glDeleteVertexArrays(1, &voxel_vao_);
+    glDeleteBuffers(1, &voxel_vbo_);
     //glDeleteBuffers(1, &cube_EBO);
     delete(cube_shader);
 
@@ -266,6 +204,7 @@ int Anthrax::renderFrame()
 
 void Anthrax::renderScene()
 {
+  glBindVertexArray(voxel_vao_);
   // Set up shader
   cube_shader->use();
 
@@ -287,144 +226,81 @@ void Anthrax::renderScene()
   cube_shader->setVec3("sunlight.specular", glm::vec3(0.3));
 
 
-  for (std::map<uint16_t, std::vector<Cube>>::iterator itr = voxel_buffer_map_.begin(); itr != voxel_buffer_map_.end(); itr++)
+  int cube_object_size = sizeof(glm::vec3)+sizeof(glm::mat4)+3*sizeof(float)+sizeof(int);
+
+  unsigned int voxels_vbo;
+  glGenBuffers(1, &voxels_vbo);
+  glBindBuffer(GL_ARRAY_BUFFER, voxels_vbo);
+  glBufferData(GL_ARRAY_BUFFER, voxel_buffer_.size()*cube_object_size, NULL, GL_STATIC_DRAW);
+
+  for (unsigned int i = 0; i < voxel_buffer_.size(); i++)
   {
-    std::vector<Cube> current_cubes = itr->second;
-    if (current_cubes.size() < 1) continue;
+    Cube current_cube = voxel_buffer_[i];
 
     // Get cube material settings
-    glm::vec3 color = current_cubes[0].getColor();
-    float reflectivity = current_cubes[0].getReflectivity();
-    float shininess = current_cubes[0].getShininess();
-    float opacity = current_cubes[0].getOpacity();
+    glm::vec3 color = current_cube.getColor();
+    float reflectivity = current_cube.getReflectivity();
+    float shininess = current_cube.getShininess();
+    float opacity = current_cube.getOpacity();
 
-    std::vector<glm::mat4> left_transform;
-    std::vector<glm::mat4> right_transform;
-    std::vector<glm::mat4> bottom_transform;
-    std::vector<glm::mat4> top_transform;
-    std::vector<glm::mat4> front_transform;
-    std::vector<glm::mat4> back_transform;
+    // set cube position and scale
+    glm::mat4 model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
+    model = glm::translate(model, current_cube.getPosition());
+    model = glm::scale(model, glm::vec3(current_cube.getSize()));
 
-    for (int i = 0; i < current_cubes.size(); i++)
-    {
-      Cube *current_cube = &(current_cubes[i]);
+    int render_faces = 0;
+    if (current_cube.render_face_[0]) render_faces |= 1;
+    if (current_cube.render_face_[1]) render_faces |= 2;
+    if (current_cube.render_face_[2]) render_faces |= 4;
+    if (current_cube.render_face_[3]) render_faces |= 8;
+    if (current_cube.render_face_[4]) render_faces |= 16;
+    if (current_cube.render_face_[5]) render_faces |= 32;
 
-      // set cube position and scale
-      glm::mat4 model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
-      model = glm::translate(model, current_cube->getPosition());
-      model = glm::scale(model, glm::vec3(current_cube->getSize()));
- 
-      for (unsigned int i = 0; i < 6; i++)
-      {
-        if (!(current_cube->render_face_[i])) continue;
-
-        std::vector<glm::mat4> *transform;
-        switch (i)
-        {
-          case 0:
-            transform = &left_transform;
-            break;
-          case 1:
-            transform = &right_transform;
-            break;
-          case 2:
-            transform = &bottom_transform;
-            break;
-          case 3:
-            transform = &top_transform;
-            break;
-          case 4:
-            transform = &front_transform;
-            break;
-          case 5:
-            transform = &back_transform;
-            break;
-        }
-        transform->push_back(model);
-
-      }
-    }
-
-    for (unsigned int i = 0; i < 6; i++)
-    {
-      unsigned int model_vbo, num_faces;
-      glGenBuffers(1, &model_vbo);
-      glBindBuffer(GL_ARRAY_BUFFER, model_vbo);
-
-      std::vector<glm::mat4> *transform;
-
-      // render boxes
-      switch (i)
-      {
-        case 0:
-          glBindVertexArray(left_face_vao_);
-          transform = &left_transform;
-          num_faces = left_transform.size();
-          break;
-        case 1:
-          glBindVertexArray(right_face_vao_);
-          transform = &right_transform;
-          num_faces = right_transform.size();
-          break;
-        case 2:
-          glBindVertexArray(bottom_face_vao_);
-          transform = &bottom_transform;
-          num_faces = bottom_transform.size();
-          break;
-        case 3:
-          glBindVertexArray(top_face_vao_);
-          transform = &top_transform;
-          num_faces = top_transform.size();
-          break;
-        case 4:
-          glBindVertexArray(front_face_vao_);
-          transform = &front_transform;
-          num_faces = front_transform.size();
-          break;
-        case 5:
-          glBindVertexArray(back_face_vao_);
-          transform = &back_transform;
-          num_faces = back_transform.size();
-          break;
-
-      }
-      //glBufferData(GL_ARRAY_BUFFER, (sizeof(glm::mat4)+sizeof(glm::vec3)+3*sizeof(float))*(*transform).size(), NULL, GL_STATIC_DRAW);
-      glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4)*transform->size(), NULL, GL_STATIC_DRAW);
-
-      glBufferSubData(GL_ARRAY_BUFFER, 0, transform->size()*sizeof(glm::mat4), &((*transform)[0]));
-      glBufferSubData(GL_ARRAY_BUFFER, transform->size()*sizeof(glm::mat4), sizeof(glm::vec3), &color);
-      glBufferSubData(GL_ARRAY_BUFFER, transform->size()*sizeof(glm::mat4)+sizeof(glm::vec3), sizeof(float), &reflectivity);
-      glBufferSubData(GL_ARRAY_BUFFER, transform->size()*sizeof(glm::mat4)+sizeof(glm::vec3)+1*sizeof(float), sizeof(float), &shininess);
-      glBufferSubData(GL_ARRAY_BUFFER, transform->size()*sizeof(glm::mat4)+sizeof(glm::vec3)+2*sizeof(float), sizeof(float), &opacity);
-
-      glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
-      glEnableVertexAttribArray(2);
-      glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(1*sizeof(glm::vec4)));
-      glEnableVertexAttribArray(3);
-      glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2*sizeof(glm::vec4)));
-      glEnableVertexAttribArray(4);
-      glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3*sizeof(glm::vec4)));
-      glEnableVertexAttribArray(5);
-
-      glVertexAttribDivisor(2, 1);
-      glVertexAttribDivisor(3, 1);
-      glVertexAttribDivisor(4, 1);
-      glVertexAttribDivisor(5, 1);
-
-      // Lighting/color settings
-      glVertexAttrib3f(6, color.x, color.y, color.z);
-      glVertexAttrib1f(7, reflectivity);
-      glVertexAttrib1f(8, shininess);
-      glVertexAttrib1f(9, opacity);
-
-
-      glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, num_faces);
-      glBindVertexArray(0);
-      glDeleteBuffers(1, &model_vbo);
-      //glDrawArrays(GL_TRIANGLES, 0, 6);
-      //glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-    }
+    // Add this cube to the VBO
+    glBufferSubData(GL_ARRAY_BUFFER, i*cube_object_size, sizeof(glm::mat4), &model);
+    glBufferSubData(GL_ARRAY_BUFFER, i*cube_object_size + sizeof(glm::mat4), sizeof(glm::vec3), &color);
+    glBufferSubData(GL_ARRAY_BUFFER, i*cube_object_size + sizeof(glm::mat4) + sizeof(glm::vec3), sizeof(float), &reflectivity);
+    glBufferSubData(GL_ARRAY_BUFFER, i*cube_object_size + sizeof(glm::mat4) + sizeof(glm::vec3) + sizeof(float), sizeof(float), &shininess);
+    glBufferSubData(GL_ARRAY_BUFFER, i*cube_object_size + sizeof(glm::mat4) + sizeof(glm::vec3) + 2*sizeof(float), sizeof(float), &opacity);
+    glBufferSubData(GL_ARRAY_BUFFER, i*cube_object_size + sizeof(glm::mat4) + sizeof(glm::vec3) + 3*sizeof(float), sizeof(int), &render_faces);
   }
+
+  glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, cube_object_size, (void*)0);
+  glEnableVertexAttribArray(1);
+  glVertexAttribDivisor(1, 1);
+  glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, cube_object_size, (void*)(sizeof(glm::vec4)));
+  glEnableVertexAttribArray(2);
+  glVertexAttribDivisor(2, 1);
+  glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, cube_object_size, (void*)(2*sizeof(glm::vec4)));
+  glEnableVertexAttribArray(3);
+  glVertexAttribDivisor(3, 1);
+  glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, cube_object_size, (void*)(3*sizeof(glm::vec4)));
+  glEnableVertexAttribArray(4);
+  glVertexAttribDivisor(4, 1);
+
+  glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, cube_object_size, (void*)(sizeof(glm::mat4)));
+  glEnableVertexAttribArray(5);
+  glVertexAttribDivisor(6, 1);
+  glVertexAttribPointer(6, 1, GL_FLOAT, GL_FALSE, cube_object_size, (void*)(sizeof(glm::mat4) + sizeof(glm::vec3)));
+  glEnableVertexAttribArray(6);
+  glVertexAttribDivisor(6, 1);
+  glVertexAttribPointer(7, 1, GL_FLOAT, GL_FALSE, cube_object_size, (void*)(sizeof(glm::mat4) + sizeof(glm::vec3) + sizeof(float)));
+  glEnableVertexAttribArray(7);
+  glVertexAttribDivisor(7, 1);
+  glVertexAttribPointer(8, 1, GL_FLOAT, GL_FALSE, cube_object_size, (void*)(sizeof(glm::mat4) + sizeof(glm::vec3) + 2*sizeof(float)));
+  glEnableVertexAttribArray(8);
+  glVertexAttribDivisor(8, 1);
+  glVertexAttribPointer(9, 1, GL_INT, GL_FALSE, cube_object_size, (void*)(sizeof(glm::mat4) + sizeof(glm::vec3) + 3*sizeof(float)));
+  glEnableVertexAttribArray(9);
+  glVertexAttribDivisor(9, 1);
+
+
+  glDrawArraysInstanced(GL_POINTS, 0, 1, voxel_buffer_.size());
+  //glDrawArrays(GL_TRIANGLES, 0, 6);
+  //glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+
+  glBindVertexArray(0);
+  glDeleteBuffers(1, &voxels_vbo);
 
 
 }
