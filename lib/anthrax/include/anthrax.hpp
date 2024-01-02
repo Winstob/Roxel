@@ -17,6 +17,10 @@
 #include <vector>
 #include <map>
 
+#define KB(x) ((size_t) (x) << 10)
+#define MB(x) ((size_t) (x) << 20)
+#define GB(x) ((size_t) (x) << 30)
+
 namespace Anthrax
 {
 
@@ -55,13 +59,15 @@ private:
 
   RenderType render_type_;
 
+  size_t voxel_cache_size_ = MB(16); // GPU voxel cache size in bytes
   std::vector<Cube> voxel_buffer_;
+  size_t voxel_object_size_ = sizeof(glm::vec3) + sizeof(glm::mat4) + 3*sizeof(float) + sizeof(int); // The size (in bytes) of all vertex attributes for a single voxel
 
   static GLFWwindow* window;
   unsigned int cube_VBO, cube_VAO, cube_EBO;
   unsigned int left_face_vbo_, right_face_vbo_, top_face_vbo_, bottom_face_vbo_, front_face_vbo_, back_face_vbo_;
   unsigned int left_face_vao_, right_face_vao_, top_face_vao_, bottom_face_vao_, front_face_vao_, back_face_vao_;
-  unsigned int voxel_vbo_, voxel_vao_;
+  unsigned int voxel_vao_, voxels_cache_;
   Shader* cube_shader = NULL;
 
   // settings

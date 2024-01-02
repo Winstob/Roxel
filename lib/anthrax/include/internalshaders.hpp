@@ -2,16 +2,15 @@
 
 const std::string cube_vertex_shader = R"glsl(
 #version 330 core
-layout (location = 0) in vec3 position;
-layout (location = 1) in mat4 model;
+layout (location = 0) in mat4 model;
 
 // Material settings
-layout (location = 5) in vec3 color;
-layout (location = 6) in float reflectivity;
-layout (location = 7) in float shininess;
-layout (location = 8) in float opacity;
+layout (location = 4) in vec3 color;
+layout (location = 5) in float reflectivity;
+layout (location = 6) in float shininess;
+layout (location = 7) in float opacity;
 
-layout (location = 9) in int render_faces;
+layout (location = 8) in int render_faces;
 
 out mat4 out_model;
 
@@ -28,10 +27,10 @@ out int out_render_faces;
 
 void main()
 {
-	//gl_Position = projection * view * model * vec4(position, 1.0f) * vec4(-1.0f, 1.0f, 1.0f, 1.0f);
-	gl_Position = vec4(position, 1.0);
+	//gl_Position = projection * view * model * vec4(0.0, 0.0, 0.0, 1.0f) * vec4(-1.0f, 1.0f, 1.0f, 1.0f);
+	gl_Position = vec4(0.0, 0.0, 0.0, 1.0);
   out_model = model;
-  vertex_position = vec3(model * vec4(position, 1.0));
+  vertex_position = vec3(model * vec4(0.0, 0.0, 0.0, 1.0));
 
   // Material settings
   vertex_color = vec3(1.0, 1.0, 1.0);
