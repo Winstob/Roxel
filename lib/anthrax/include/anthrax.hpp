@@ -59,9 +59,9 @@ private:
 
   RenderType render_type_;
 
-  size_t voxel_cache_size_ = MB(16); // GPU voxel cache size in bytes
+  size_t voxel_cache_size_ = MB(8); // GPU voxel cache size in bytes
   std::vector<Cube> voxel_buffer_;
-  size_t voxel_object_size_ = sizeof(glm::vec3) + sizeof(glm::mat4) + 3*sizeof(float) + sizeof(int); // The size (in bytes) of all vertex attributes for a single voxel
+  size_t voxel_object_size_ = 2*sizeof(glm::vec3) + + 3*sizeof(float) + 2*sizeof(int); // The size (in bytes) of all vertex attributes for a single voxel
 
   static GLFWwindow* window;
   unsigned int cube_VBO, cube_VAO, cube_EBO;

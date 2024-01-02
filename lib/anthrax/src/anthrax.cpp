@@ -96,94 +96,31 @@ int Anthrax::startWindow()
   }
 
   // Set up vertex attributes
-  glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, voxel_object_size_, (void*)0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, voxel_object_size_, (void*)0);
   glEnableVertexAttribArray(0);
   glVertexAttribDivisor(0, 1);
-  glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, voxel_object_size_, (void*)(sizeof(glm::vec4)));
+  glVertexAttribPointer(1, 1, GL_INT, GL_FALSE, voxel_object_size_, (void*)(sizeof(glm::vec3)));
   glEnableVertexAttribArray(1);
   glVertexAttribDivisor(1, 1);
-  glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, voxel_object_size_, (void*)(2*sizeof(glm::vec4)));
+  glVertexAttribPointer(2, 1, GL_INT, GL_FALSE, voxel_object_size_, (void*)(sizeof(glm::vec3)+sizeof(int)));
   glEnableVertexAttribArray(2);
   glVertexAttribDivisor(2, 1);
-  glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, voxel_object_size_, (void*)(3*sizeof(glm::vec4)));
+  glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, voxel_object_size_, (void*)(sizeof(glm::vec3)+2*sizeof(int)));
   glEnableVertexAttribArray(3);
   glVertexAttribDivisor(3, 1);
-
-  glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, voxel_object_size_, (void*)(sizeof(glm::mat4)));
+  glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, voxel_object_size_, (void*)(2*sizeof(glm::vec3)+2*sizeof(int)));
   glEnableVertexAttribArray(4);
   glVertexAttribDivisor(4, 1);
-  glVertexAttribPointer(5, 1, GL_FLOAT, GL_FALSE, voxel_object_size_, (void*)(sizeof(glm::mat4) + sizeof(glm::vec3)));
+  glVertexAttribPointer(5, 1, GL_FLOAT, GL_FALSE, voxel_object_size_, (void*)(2*sizeof(glm::vec3)+2*sizeof(int)+sizeof(float)));
   glEnableVertexAttribArray(5);
   glVertexAttribDivisor(5, 1);
-  glVertexAttribPointer(6, 1, GL_FLOAT, GL_FALSE, voxel_object_size_, (void*)(sizeof(glm::mat4) + sizeof(glm::vec3) + sizeof(float)));
+  glVertexAttribPointer(6, 1, GL_FLOAT, GL_FALSE, voxel_object_size_, (void*)(2*sizeof(glm::vec3)+2*sizeof(int)+2*sizeof(float)));
   glEnableVertexAttribArray(6);
   glVertexAttribDivisor(6, 1);
-  glVertexAttribPointer(7, 1, GL_FLOAT, GL_FALSE, voxel_object_size_, (void*)(sizeof(glm::mat4) + sizeof(glm::vec3) + 2*sizeof(float)));
-  glEnableVertexAttribArray(7);
-  glVertexAttribDivisor(7, 1);
-  glVertexAttribPointer(8, 1, GL_INT, GL_FALSE, voxel_object_size_, (void*)(sizeof(glm::mat4) + sizeof(glm::vec3) + 3*sizeof(float)));
-  glEnableVertexAttribArray(8);
-  glVertexAttribDivisor(8, 1);
-
-
-
 
   // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
   glBindBuffer(GL_ARRAY_BUFFER, 0);
- 
-  /*
-  // I couldn't figure out a way to use normal vectors with this method, but keeping it here in case I do in the future
-  float cube_vertices_[24] = {
-    // Front face
-    -0.5f, -0.5f, -0.5f, // Bottom left
-    0.5f, -0.5f, -0.5f, // Bottom right
-    -0.5f, 0.5f, -0.5f, // Top left
-    0.5f, 0.5f, -0.5f, // Top right
-    // Back face
-    -0.5f, -0.5f, 0.5f, // Bottom left
-    0.5f, -0.5f, 0.5f, // Bottom right
-    -0.5f, 0.5f, 0.5f, // Top left
-    0.5f, 0.5f, 0.5f // Top right
-  };
-  unsigned int cube_indices_[36] = {
-    // Front face
-    0, 1, 2,
-    1, 2, 3,
-    // Back face
-    4, 5, 6,
-    5, 6, 7,
-    // Left face
-    0, 4, 6,
-    0, 2, 6,
-    // Right face
-    1, 3, 5,
-    3, 5, 7,
-    // Top face
-    2, 3, 7,
-    2, 6, 7,
-    // Bottom face
-    0, 1, 4,
-    1, 4, 5
-  };
-  glGenVertexArrays(1, &cube_VAO);
-  glGenBuffers(1, &cube_VBO);
-  glGenBuffers(1, &cube_EBO);
 
-  glBindVertexArray(cube_VAO);
-
-  glBindBuffer(GL_ARRAY_BUFFER, cube_VBO);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(cube_vertices_), cube_vertices_, GL_STATIC_DRAW);
-
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cube_EBO);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cube_indices_), cube_indices_, GL_STATIC_DRAW);
-
-  // position attribute
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-  glEnableVertexAttribArray(0);
-
-  // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-  */
 
   // Wireframe mode
   //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -279,6 +216,9 @@ void Anthrax::renderScene()
     model = glm::translate(model, current_cube.getPosition());
     model = glm::scale(model, glm::vec3(current_cube.getSize()));
 
+    glm::vec3 position = current_cube.getPosition();
+    int size = current_cube.getSize();
+
     int render_faces = 0;
     if (current_cube.render_face_[0]) render_faces |= 1;
     if (current_cube.render_face_[1]) render_faces |= 2;
@@ -288,12 +228,14 @@ void Anthrax::renderScene()
     if (current_cube.render_face_[5]) render_faces |= 32;
 
     // Add this cube to the VBO
-    glBufferSubData(GL_ARRAY_BUFFER, i*voxel_object_size_, sizeof(glm::mat4), &model);
-    glBufferSubData(GL_ARRAY_BUFFER, i*voxel_object_size_ + sizeof(glm::mat4), sizeof(glm::vec3), &color);
-    glBufferSubData(GL_ARRAY_BUFFER, i*voxel_object_size_ + sizeof(glm::mat4) + sizeof(glm::vec3), sizeof(float), &reflectivity);
-    glBufferSubData(GL_ARRAY_BUFFER, i*voxel_object_size_ + sizeof(glm::mat4) + sizeof(glm::vec3) + sizeof(float), sizeof(float), &shininess);
-    glBufferSubData(GL_ARRAY_BUFFER, i*voxel_object_size_ + sizeof(glm::mat4) + sizeof(glm::vec3) + 2*sizeof(float), sizeof(float), &opacity);
-    glBufferSubData(GL_ARRAY_BUFFER, i*voxel_object_size_ + sizeof(glm::mat4) + sizeof(glm::vec3) + 3*sizeof(float), sizeof(int), &render_faces);
+    glBufferSubData(GL_ARRAY_BUFFER, i*voxel_object_size_, sizeof(glm::vec3), &position);
+    glBufferSubData(GL_ARRAY_BUFFER, i*voxel_object_size_ + sizeof(glm::vec3), sizeof(int), &size);
+    glBufferSubData(GL_ARRAY_BUFFER, i*voxel_object_size_ + sizeof(glm::vec3) + sizeof(int), sizeof(int), &render_faces);
+
+    glBufferSubData(GL_ARRAY_BUFFER, i*voxel_object_size_ + sizeof(glm::vec3) + 2*sizeof(int), sizeof(glm::vec3), &color);
+    glBufferSubData(GL_ARRAY_BUFFER, i*voxel_object_size_ + 2*sizeof(glm::vec3) + 2*sizeof(int), sizeof(float), &reflectivity);
+    glBufferSubData(GL_ARRAY_BUFFER, i*voxel_object_size_ + 2*sizeof(glm::vec3) + 2*sizeof(int) + sizeof(float), sizeof(float), &shininess);
+    glBufferSubData(GL_ARRAY_BUFFER, i*voxel_object_size_ + 2*sizeof(glm::vec3) + 2*sizeof(int) + 2*sizeof(float), sizeof(float), &opacity);
   }
 
 
