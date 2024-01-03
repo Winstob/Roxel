@@ -2,9 +2,11 @@
 
 const std::string cube_vertex_shader = R"glsl(
 #version 330 core
+#extension GL_EXT_gpu_shader4 : enable
+
 layout (location = 0) in vec3 voxel_position;
 layout (location = 1) in int voxel_size;
-layout (location = 2) in int render_faces;
+layout (location = 2) in uint render_faces;
 
 // Material settings
 layout (location = 3) in vec3 color;
@@ -12,15 +14,20 @@ layout (location = 4) in float reflectivity;
 layout (location = 5) in float shininess;
 layout (location = 6) in float opacity;
 
-
-out int out_render_faces;
 out mat4 model;
 
+flat out float render_left;
+flat out float render_right;
+flat out float render_bottom;
+flat out float render_top;
+flat out float render_front;
+flat out float render_back;
+
 // Material settings
-out vec3 vertex_color;
-out float vertex_reflectivity;
-out float vertex_shininess;
-out float vertex_opacity;
+flat out vec3 vertex_color;
+flat out float vertex_reflectivity;
+flat out float vertex_shininess;
+flat out float vertex_opacity;
 
 
 void main()
@@ -38,7 +45,44 @@ void main()
   vertex_shininess = shininess;
   vertex_opacity = opacity;
 
-  out_render_faces = render_faces;
+  float faces_to_render = uintBitsToFloat(render_faces);
+
+  render_back = 0.0;
+  if (faces_to_render >= 32.0)
+  {
+    render_back = 1.0;
+    faces_to_render -= 32.0;
+  }
+  render_front = 0.0;
+  if (faces_to_render >= 16.0)
+  {
+    render_front = 1.0;
+    faces_to_render -= 16.0;
+  }
+  render_top = 0.0;
+  if (faces_to_render >= 8.0)
+  {
+    render_top = 1.0;
+    faces_to_render -= 8.0;
+  }
+  render_bottom = 0.0;
+  if (faces_to_render >= 4.0)
+  {
+    render_bottom = 1.0;
+    faces_to_render -= 8.0;
+  }
+  render_right = 0.0;
+  if (faces_to_render >= 2.0)
+  {
+    render_right = 1.0;
+    faces_to_render -= 2.0;
+  }
+  render_left = 0.0;
+  if (faces_to_render >= 1.0)
+  {
+    render_left = 1.0;
+  }
+
 }
 )glsl";
 
@@ -79,10 +123,10 @@ in vec3 normal;
 in vec3 fragment_position;
 
 // Material settings
-in vec3 voxel_color;
-in float voxel_reflectivity;
-in float voxel_shininess;
-in float voxel_opacity;
+flat in vec3 voxel_color;
+flat in float voxel_reflectivity;
+flat in float voxel_shininess;
+flat in float voxel_opacity;
 
 struct DirectLight
 {
@@ -129,21 +173,27 @@ layout (triangle_strip, max_vertices = 24) out;
 //layout (triangle_strip, max_vertices = 3) out;
 
 in mat4 model[];
-in int out_render_faces[];
+
+flat in float render_left[];
+flat in float render_right[];
+flat in float render_bottom[];
+flat in float render_top[];
+flat in float render_front[];
+flat in float render_back[];
 
 out vec3 normal;
 out vec3 fragment_position;
 
 
 // Material settings (transparent)
-in vec3 vertex_color[];
-in float vertex_reflectivity[];
-in float vertex_shininess[];
-in float vertex_opacity[];
-out vec3 voxel_color;
-out float voxel_reflectivity;
-out float voxel_shininess;
-out float voxel_opacity;
+flat in vec3 vertex_color[];
+flat in float vertex_reflectivity[];
+flat in float vertex_shininess[];
+flat in float vertex_opacity[];
+flat out vec3 voxel_color;
+flat out float voxel_reflectivity;
+flat out float voxel_shininess;
+flat out float voxel_opacity;
 
 
 uniform mat4 view;
@@ -265,11 +315,11 @@ void main()
   voxel_shininess = vertex_shininess[0];
   voxel_opacity = vertex_opacity[0];
 
-  drawFrontFace(vec4(0.0, 0.0, 0.0, 1.0));
-  drawBackFace(vec4(0.0, 0.0, 0.0, 1.0));
-  drawLeftFace(vec4(0.0, 0.0, 0.0, 1.0));
-  drawRightFace(vec4(0.0, 0.0, 0.0, 1.0));
-  drawBottomFace(vec4(0.0, 0.0, 0.0, 1.0));
-  drawTopFace(vec4(0.0, 0.0, 0.0, 1.0));
+  if (render_left[0] == 1.0) drawLeftFace(vec4(0.0, 0.0, 0.0, 1.0));
+  if (render_right[0] == 1.0) drawRightFace(vec4(0.0, 0.0, 0.0, 1.0));
+  if (render_bottom[0] == 1.0) drawBottomFace(vec4(0.0, 0.0, 0.0, 1.0));
+  if (render_top[0] == 1.0) drawTopFace(vec4(0.0, 0.0, 0.0, 1.0));
+  if (render_front[0] == 1.0) drawFrontFace(vec4(0.0, 0.0, 0.0, 1.0));
+  if (render_back[0] == 1.0) drawBackFace(vec4(0.0, 0.0, 0.0, 1.0));
 }
 )glsl";

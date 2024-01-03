@@ -102,7 +102,7 @@ int Anthrax::startWindow()
   glVertexAttribPointer(1, 1, GL_INT, GL_FALSE, voxel_object_size_, (void*)(sizeof(glm::vec3)));
   glEnableVertexAttribArray(1);
   glVertexAttribDivisor(1, 1);
-  glVertexAttribPointer(2, 1, GL_INT, GL_FALSE, voxel_object_size_, (void*)(sizeof(glm::vec3)+sizeof(int)));
+  glVertexAttribPointer(2, 1, GL_UNSIGNED_INT, GL_FALSE, voxel_object_size_, (void*)(sizeof(glm::vec3)+sizeof(int)));
   glEnableVertexAttribArray(2);
   glVertexAttribDivisor(2, 1);
   glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, voxel_object_size_, (void*)(sizeof(glm::vec3)+2*sizeof(int)));
@@ -207,9 +207,9 @@ void Anthrax::renderScene()
 
     // Get cube material settings
     glm::vec3 color = current_cube.getColor();
-    float reflectivity = current_cube.getReflectivity();
-    float shininess = current_cube.getShininess();
-    float opacity = current_cube.getOpacity();
+    GLfloat reflectivity = current_cube.getReflectivity();
+    GLfloat shininess = current_cube.getShininess();
+    GLfloat opacity = current_cube.getOpacity();
 
     // set cube position and scale
     glm::mat4 model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
@@ -217,15 +217,15 @@ void Anthrax::renderScene()
     model = glm::scale(model, glm::vec3(current_cube.getSize()));
 
     glm::vec3 position = current_cube.getPosition();
-    int size = current_cube.getSize();
+    GLint size = current_cube.getSize();
 
-    int render_faces = 0;
-    if (current_cube.render_face_[0]) render_faces |= 1;
-    if (current_cube.render_face_[1]) render_faces |= 2;
-    if (current_cube.render_face_[2]) render_faces |= 4;
-    if (current_cube.render_face_[3]) render_faces |= 8;
-    if (current_cube.render_face_[4]) render_faces |= 16;
-    if (current_cube.render_face_[5]) render_faces |= 32;
+    GLuint render_faces = 0u;
+    if (current_cube.render_face_[0]) render_faces |= 1u;
+    if (current_cube.render_face_[1]) render_faces |= 2u;
+    if (current_cube.render_face_[2]) render_faces |= 4u;
+    if (current_cube.render_face_[3]) render_faces |= 8u;
+    if (current_cube.render_face_[4]) render_faces |= 16u;
+    if (current_cube.render_face_[5]) render_faces |= 32u;
 
     // Add this cube to the VBO
     glBufferSubData(GL_ARRAY_BUFFER, i*voxel_object_size_, sizeof(glm::vec3), &position);
