@@ -45,6 +45,8 @@ void main()
   vertex_shininess = shininess;
   vertex_opacity = opacity;
 
+  // For whatever reason, opengl always interprets data as floats, even when it is specified as an int
+  // So we have to do some finagling to parse this int properly
   float faces_to_render = uintBitsToFloat(render_faces);
 
   render_back = 0.0;
@@ -69,7 +71,7 @@ void main()
   if (faces_to_render >= 4.0)
   {
     render_bottom = 1.0;
-    faces_to_render -= 8.0;
+    faces_to_render -= 4.0;
   }
   render_right = 0.0;
   if (faces_to_render >= 2.0)
