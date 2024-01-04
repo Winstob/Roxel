@@ -27,7 +27,10 @@ public:
 private:
   size_t voxel_cache_size_;
   size_t voxel_object_size_; // The size (in bytes) of all vertex attributes for a single voxel
+  size_t num_voxels_; // The exact number of voxels that can be kept within the cache
   unsigned int voxel_vao_, voxels_cache_;
+
+  Cube **cache_emulator_;
 };
 
 } // namespace Anthrax

@@ -37,11 +37,15 @@ set(HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/include/cube.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/include/anthrax_types.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/include/voxelcachemanager.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/voxeldisplaylist.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/voxeldisplaylistnode.hpp
   )
 
 set(SRC
   ${CMAKE_CURRENT_SOURCE_DIR}/src/anthrax.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/voxelcachemanager.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/voxeldisplaylist.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/voxeldisplaylistnode.cpp
   )
 
 set(SHADERS

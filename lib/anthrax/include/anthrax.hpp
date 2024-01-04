@@ -19,6 +19,7 @@
 #include "camera.hpp"
 
 #include "cube.hpp"
+#include "voxeldisplaylist.hpp"
 #include "voxelcachemanager.hpp"
 
 #include "anthrax_types.hpp"

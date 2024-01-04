@@ -125,7 +125,6 @@ private:
 
   glm::vec3 position_;
   int size_;
-
 };
 
 } // namespace Anthrax

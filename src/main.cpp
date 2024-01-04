@@ -25,6 +25,8 @@ int main()
   bool window_closed = false;
 
 
+  // Create a container to hold all the voxels that may need to be displayed, hand it to the world manager
+  Anthrax::VoxelDisplayList voxel_display_list = Anthrax::VoxelDisplayList();
 
   World world = World("world");
   world.loadArea(Anthrax::vec3<int64_t>(0, 0, 0), 1000);
@@ -38,6 +40,7 @@ int main()
   world.getCubes(&cube_vector);
   for (unsigned int i = 0; i < cube_vector.size(); i++)
   {
+    voxel_display_list.push_back(&(cube_vector[i]));
     anthrax_handle_->addVoxel(cube_vector[i]);
   }
 

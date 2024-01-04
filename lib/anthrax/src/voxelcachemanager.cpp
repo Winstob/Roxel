@@ -19,6 +19,7 @@ VoxelCacheManager::~VoxelCacheManager()
   // These will be cleared anyway by a call to glfwTerminate(), so technically not necessary
   glDeleteVertexArrays(1, &voxel_vao_);
   glDeleteBuffers(1, &voxels_cache_);
+  free(cache_emulator_);
 }
 
 
@@ -26,6 +27,7 @@ void VoxelCacheManager::initialize(size_t cache_size)
 {
   voxel_cache_size_ = cache_size;
   voxel_object_size_ = 2*sizeof(glm::vec3) + 3*sizeof(float) + 2*sizeof(int); // The size (in bytes) of all vertex attributes for a single voxel
+  num_voxels_ = voxel_cache_size_ / voxel_object_size_;
   // set up vertex data (and buffer(s)) and configure vertex attributes
   // Create vao to render voxels - no data is needed here as everything is computed in the geometry shader
   glGenVertexArrays(1, &voxel_vao_);
@@ -67,6 +69,10 @@ void VoxelCacheManager::initialize(size_t cache_size)
 
   // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
   glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+  // Set up CPU side cache emulator - this is to help control how to organize the GPU cache (removal and addition of voxels)
+  cache_emulator_ = reinterpret_cast<Cube**>(calloc(sizeof(Cube*), num_voxels_));
+
 }
 
 
