@@ -14,21 +14,6 @@
 int main()
 {
   Anthrax::Anthrax *anthrax_handle_ = new Anthrax::Anthrax();
-  /*
-  int num_cubes_to_render = 800;
-  int x = floor(sqrt(num_cubes_to_render));
-  num_cubes_to_render = x*x;
-  for (int i = 0; i < x; i++)
-  {
-    for (int j = 0; j < num_cubes_to_render/x; j++)
-    {
-      Anthrax::vec4<float> color((float)i/x, (float)0.0, (float)j/(num_cubes_to_render/x), (float)1.0);
-      Anthrax::vec3<float> pos(i-(x/2), -10, j-(x/2));
-      anthrax_handle_->addVoxel(Anthrax::Cube(color, pos));
-    }
-  }
-  */
-
   try
   {
     anthrax_handle_->startWindow();
@@ -82,6 +67,6 @@ int main()
     player.update();
   }
 
-  delete(anthrax_handle_);
+  delete anthrax_handle_;
   return 0;
 }

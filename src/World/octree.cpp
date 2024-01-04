@@ -59,14 +59,7 @@ Octree::~Octree()
   {
     if (children_[i] != NULL)
     {
-      delete(children_[i]);
-    }
-  }
-  for (unsigned int i = 0; i < 6; i++)
-  {
-    if (neighbors_[i] != NULL)
-    {
-      delete(neighbors_[i]);
+      delete children_[i];
     }
   }
 }

@@ -124,12 +124,11 @@ int Anthrax::renderFrame()
 
   if (glfwWindowShouldClose(window))
   {
-    delete(cube_shader);
+    delete cube_shader;
 
+    delete voxel_cache_manager_;
     // glfw: terminate, clearing all previously allocated GLFW resources.
-    // ------------------------------------------------------------------
     glfwTerminate();
-    delete(voxel_cache_manager_);
     return 1;
   }
   return 0;

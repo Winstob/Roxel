@@ -16,6 +16,7 @@ VoxelCacheManager::VoxelCacheManager()
 
 VoxelCacheManager::~VoxelCacheManager()
 {
+  // These will be cleared anyway by a call to glfwTerminate(), so technically not necessary
   glDeleteVertexArrays(1, &voxel_vao_);
   glDeleteBuffers(1, &voxels_cache_);
 }
