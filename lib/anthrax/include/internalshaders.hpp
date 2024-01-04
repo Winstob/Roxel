@@ -1,3 +1,10 @@
+/* ---------------------------------------------------------------- *\
+ * internalshaders.hpp
+ * Author: Gavin Ralston
+ * Date Created: 2023-11-30
+\* ---------------------------------------------------------------- */
+
+
 #include <string>
 
 const std::string cube_vertex_shader = R"glsl(

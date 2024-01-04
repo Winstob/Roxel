@@ -1,3 +1,10 @@
+/* ---------------------------------------------------------------- *\
+ * anthrax_types.hpp
+ * Author: Gavin Ralston
+ * Date Created: 2023-12-03
+\* ---------------------------------------------------------------- */
+
+
 #ifndef ANTHRAX_TYPES_HPP
 #define ANTHRAX_TYPES_HPP
 
