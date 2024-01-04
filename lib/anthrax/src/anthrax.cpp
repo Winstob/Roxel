@@ -1,5 +1,5 @@
-#include "anthrax.hpp"
 #include <iostream>
+#include "anthrax.hpp"
 
 namespace Anthrax
 {
@@ -79,52 +79,10 @@ int Anthrax::startWindow()
   // ------------------------------------
   cube_shader = new Shader(Shader::ShaderInputType::CODESTRING, cube_vertex_shader.c_str(), cube_fragment_shader.c_str(), cube_geometry_shader.c_str());
 
-  // set up vertex data (and buffer(s)) and configure vertex attributes
-  // Create vao to render voxels - no data is needed here as everything is computed in the geometry shader
-  glGenVertexArrays(1, &voxel_vao_);
-  glBindVertexArray(voxel_vao_);
+  // Initialize the voxel cache
+  voxel_cache_manager_ = new VoxelCacheManager();
+  voxel_cache_manager_->initialize(MB(16));
 
-  glGenBuffers(1, &voxels_cache_);
-  glBindBuffer(GL_ARRAY_BUFFER, voxels_cache_);
-  glBufferData(GL_ARRAY_BUFFER, voxel_cache_size_, NULL, GL_DYNAMIC_DRAW);
-  // Fill voxel cache with 0's
-  // Probably not the most effective way to do this, but it only happens once
-  uint8_t zero = 0;
-  for (unsigned int i = 0; i < voxel_cache_size_; i++)
-  {
-    glBufferSubData(GL_ARRAY_BUFFER, i, 1, &zero);
-  }
-
-  // Set up vertex attributes
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, voxel_object_size_, (void*)0);
-  glEnableVertexAttribArray(0);
-  glVertexAttribDivisor(0, 1);
-  glVertexAttribPointer(1, 1, GL_INT, GL_FALSE, voxel_object_size_, (void*)(sizeof(glm::vec3)));
-  glEnableVertexAttribArray(1);
-  glVertexAttribDivisor(1, 1);
-  glVertexAttribPointer(2, 1, GL_UNSIGNED_INT, GL_FALSE, voxel_object_size_, (void*)(sizeof(glm::vec3)+sizeof(int)));
-  glEnableVertexAttribArray(2);
-  glVertexAttribDivisor(2, 1);
-  glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, voxel_object_size_, (void*)(sizeof(glm::vec3)+2*sizeof(int)));
-  glEnableVertexAttribArray(3);
-  glVertexAttribDivisor(3, 1);
-  glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, voxel_object_size_, (void*)(2*sizeof(glm::vec3)+2*sizeof(int)));
-  glEnableVertexAttribArray(4);
-  glVertexAttribDivisor(4, 1);
-  glVertexAttribPointer(5, 1, GL_FLOAT, GL_FALSE, voxel_object_size_, (void*)(2*sizeof(glm::vec3)+2*sizeof(int)+sizeof(float)));
-  glEnableVertexAttribArray(5);
-  glVertexAttribDivisor(5, 1);
-  glVertexAttribPointer(6, 1, GL_FLOAT, GL_FALSE, voxel_object_size_, (void*)(2*sizeof(glm::vec3)+2*sizeof(int)+2*sizeof(float)));
-  glEnableVertexAttribArray(6);
-  glVertexAttribDivisor(6, 1);
-
-  // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-
-  // Wireframe mode
-  //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-  
   // Face culling
   glEnable(GL_CULL_FACE);
   glCullFace(GL_BACK);
@@ -160,16 +118,12 @@ int Anthrax::renderFrame()
 
   if (glfwWindowShouldClose(window))
   {
-    // optional: de-allocate all resources once they've outlived their purpose:
-    // ------------------------------------------------------------------------
-    glDeleteVertexArrays(1, &voxel_vao_);
-    glDeleteBuffers(1, &voxels_cache_);
-    //glDeleteBuffers(1, &cube_EBO);
     delete(cube_shader);
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
     // ------------------------------------------------------------------
     glfwTerminate();
+    delete(voxel_cache_manager_);
     return 1;
   }
   return 0;
@@ -178,8 +132,6 @@ int Anthrax::renderFrame()
 
 void Anthrax::renderScene()
 {
-  glBindVertexArray(voxel_vao_);
-  glBindBuffer(GL_ARRAY_BUFFER, voxels_cache_);
   // Set up shader
   cube_shader->use();
 
@@ -200,52 +152,12 @@ void Anthrax::renderScene()
   cube_shader->setVec3("sunlight.diffuse", glm::vec3(1.0));
   cube_shader->setVec3("sunlight.specular", glm::vec3(0.3));
 
-
-  for (unsigned int i = 0; i < voxel_buffer_.size(); i++)
+  if (voxel_buffer_.size() > 0)
   {
-    Cube current_cube = voxel_buffer_[i];
-
-    // Get cube material settings
-    glm::vec3 color = current_cube.getColor();
-    GLfloat reflectivity = current_cube.getReflectivity();
-    GLfloat shininess = current_cube.getShininess();
-    GLfloat opacity = current_cube.getOpacity();
-
-    // set cube position and scale
-    glm::mat4 model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
-    model = glm::translate(model, current_cube.getPosition());
-    model = glm::scale(model, glm::vec3(current_cube.getSize()));
-
-    glm::vec3 position = current_cube.getPosition();
-    GLint size = current_cube.getSize();
-
-    GLuint render_faces = 0u;
-    if (current_cube.render_face_[0]) render_faces |= 1u;
-    if (current_cube.render_face_[1]) render_faces |= 2u;
-    if (current_cube.render_face_[2]) render_faces |= 4u;
-    if (current_cube.render_face_[3]) render_faces |= 8u;
-    if (current_cube.render_face_[4]) render_faces |= 16u;
-    if (current_cube.render_face_[5]) render_faces |= 32u;
-
-    // Add this cube to the VBO
-    glBufferSubData(GL_ARRAY_BUFFER, i*voxel_object_size_, sizeof(glm::vec3), &position);
-    glBufferSubData(GL_ARRAY_BUFFER, i*voxel_object_size_ + sizeof(glm::vec3), sizeof(int), &size);
-    glBufferSubData(GL_ARRAY_BUFFER, i*voxel_object_size_ + sizeof(glm::vec3) + sizeof(int), sizeof(int), &render_faces);
-
-    glBufferSubData(GL_ARRAY_BUFFER, i*voxel_object_size_ + sizeof(glm::vec3) + 2*sizeof(int), sizeof(glm::vec3), &color);
-    glBufferSubData(GL_ARRAY_BUFFER, i*voxel_object_size_ + 2*sizeof(glm::vec3) + 2*sizeof(int), sizeof(float), &reflectivity);
-    glBufferSubData(GL_ARRAY_BUFFER, i*voxel_object_size_ + 2*sizeof(glm::vec3) + 2*sizeof(int) + sizeof(float), sizeof(float), &shininess);
-    glBufferSubData(GL_ARRAY_BUFFER, i*voxel_object_size_ + 2*sizeof(glm::vec3) + 2*sizeof(int) + 2*sizeof(float), sizeof(float), &opacity);
+    voxel_cache_manager_->addCubes(&(voxel_buffer_[0]), voxel_buffer_.size());
+    voxel_buffer_.clear();
   }
-
-
-  glDrawArraysInstanced(GL_POINTS, 0, 1, voxel_cache_size_ / voxel_object_size_);
-  //glDrawArrays(GL_TRIANGLES, 0, 6);
-  //glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-
-  voxel_buffer_.clear();
-  glBindVertexArray(0);
-
+  voxel_cache_manager_->renderCubes();
 }
 
 void Anthrax::key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)

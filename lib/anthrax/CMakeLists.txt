@@ -36,10 +36,12 @@ set(HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/include/shader.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/include/cube.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/include/anthrax_types.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/voxelcachemanager.hpp
   )
 
 set(SRC
   ${CMAKE_CURRENT_SOURCE_DIR}/src/anthrax.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/voxelcachemanager.cpp
   )
 
 set(SHADERS
