@@ -87,7 +87,7 @@ int Anthrax::startWindow()
 
   // Initialize the voxel cache
   voxel_cache_manager_ = new VoxelCacheManager();
-  voxel_cache_manager_->initialize(MB(1));
+  voxel_cache_manager_->initialize(MB(8));
 
   // Face culling
   glEnable(GL_CULL_FACE);
