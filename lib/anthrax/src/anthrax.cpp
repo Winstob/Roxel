@@ -87,7 +87,7 @@ int Anthrax::startWindow()
 
   // Initialize the voxel cache
   voxel_cache_manager_ = new VoxelCacheManager();
-  voxel_cache_manager_->initialize(MB(16));
+  voxel_cache_manager_->initialize(MB(1));
 
   // Face culling
   glEnable(GL_CULL_FACE);
@@ -116,6 +116,8 @@ int Anthrax::renderFrame()
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 
   // Update the voxel cache
+  // Temporary: give player position to cache manager
+  voxel_cache_manager_->view_position_ = camera.position_;
   voxel_cache_manager_->updateCache();
 
   // Draw the scene

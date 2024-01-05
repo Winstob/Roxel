@@ -6,6 +6,10 @@
 
 #include "voxelcachemanager.hpp"
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 namespace Anthrax
 {
 
@@ -142,48 +146,67 @@ void VoxelCacheManager::updateCache()
   glBindBuffer(GL_ARRAY_BUFFER, voxels_cache_);
 
   VoxelDisplayList::iterator itr = voxel_display_list_.begin();
-  while (num_voxels_added_ < max_num_voxels_)
+  while (num_voxels_added_ < max_num_voxels_ && itr != nullptr)
   {
-    Cube *current_cube = *itr;
+    if (!((*itr)->is_in_cache_))
+    {
+      Cube *current_cube = *itr;
 
-    // Get cube material settings
-    glm::vec3 color = current_cube->getColor();
-    GLfloat reflectivity = current_cube->getReflectivity();
-    GLfloat shininess = current_cube->getShininess();
-    GLfloat opacity = current_cube->getOpacity();
+      if (glm::length(current_cube->getPosition() - view_position_) < 64.0)
+      {
+        // Only add this cube to the cache if it fits these criteria
 
-    /*
-    // set cube position and scale
-    glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, current_cube.getPosition());
-    model = glm::scale(model, glm::vec3(current_cube.getSize()));
-    */
 
-    glm::vec3 position = current_cube->getPosition();
-    GLint size = current_cube->getSize();
+        // Get cube material settings
+        glm::vec3 color = current_cube->getColor();
+        GLfloat reflectivity = current_cube->getReflectivity();
+        GLfloat shininess = current_cube->getShininess();
+        GLfloat opacity = current_cube->getOpacity();
 
-    GLuint render_faces = 0u;
-    if (current_cube->render_face_[0]) render_faces |= 1u;
-    if (current_cube->render_face_[1]) render_faces |= 2u;
-    if (current_cube->render_face_[2]) render_faces |= 4u;
-    if (current_cube->render_face_[3]) render_faces |= 8u;
-    if (current_cube->render_face_[4]) render_faces |= 16u;
-    if (current_cube->render_face_[5]) render_faces |= 32u;
+        /*
+        // set cube position and scale
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, current_cube.getPosition());
+        model = glm::scale(model, glm::vec3(current_cube.getSize()));
+        */
 
-    // Add this cube to the VBO
-    glBufferSubData(GL_ARRAY_BUFFER, num_voxels_added_*voxel_object_size_, sizeof(glm::vec3), &position);
-    glBufferSubData(GL_ARRAY_BUFFER, num_voxels_added_*voxel_object_size_ + sizeof(glm::vec3), sizeof(int), &size);
-    glBufferSubData(GL_ARRAY_BUFFER, num_voxels_added_*voxel_object_size_ + sizeof(glm::vec3) + sizeof(int), sizeof(int), &render_faces);
+        glm::vec3 position = current_cube->getPosition();
+        GLint size = current_cube->getSize();
 
-    glBufferSubData(GL_ARRAY_BUFFER, num_voxels_added_*voxel_object_size_ + sizeof(glm::vec3) + 2*sizeof(int), sizeof(glm::vec3), &color);
-    glBufferSubData(GL_ARRAY_BUFFER, num_voxels_added_*voxel_object_size_ + 2*sizeof(glm::vec3) + 2*sizeof(int), sizeof(float), &reflectivity);
-    glBufferSubData(GL_ARRAY_BUFFER, num_voxels_added_*voxel_object_size_ + 2*sizeof(glm::vec3) + 2*sizeof(int) + sizeof(float), sizeof(float), &shininess);
-    glBufferSubData(GL_ARRAY_BUFFER, num_voxels_added_*voxel_object_size_ + 2*sizeof(glm::vec3) + 2*sizeof(int) + 2*sizeof(float), sizeof(float), &opacity);
+        GLuint render_faces = 0u;
+        if (current_cube->render_face_[0]) render_faces |= 1u;
+        if (current_cube->render_face_[1]) render_faces |= 2u;
+        if (current_cube->render_face_[2]) render_faces |= 4u;
+        if (current_cube->render_face_[3]) render_faces |= 8u;
+        if (current_cube->render_face_[4]) render_faces |= 16u;
+        if (current_cube->render_face_[5]) render_faces |= 32u;
 
-    num_voxels_added_++;
+        // Add this cube to the VBO
+        int cache_location = max_num_voxels_ - num_voxels_added_ - 1;
+        glBufferSubData(GL_ARRAY_BUFFER, cache_location*voxel_object_size_, sizeof(glm::vec3), &position);
+        glBufferSubData(GL_ARRAY_BUFFER, cache_location*voxel_object_size_ + sizeof(glm::vec3), sizeof(int), &size);
+        glBufferSubData(GL_ARRAY_BUFFER, cache_location*voxel_object_size_ + sizeof(glm::vec3) + sizeof(int), sizeof(int), &render_faces);
+
+        glBufferSubData(GL_ARRAY_BUFFER, cache_location*voxel_object_size_ + sizeof(glm::vec3) + 2*sizeof(int), sizeof(glm::vec3), &color);
+        glBufferSubData(GL_ARRAY_BUFFER, cache_location*voxel_object_size_ + 2*sizeof(glm::vec3) + 2*sizeof(int), sizeof(float), &reflectivity);
+        glBufferSubData(GL_ARRAY_BUFFER, cache_location*voxel_object_size_ + 2*sizeof(glm::vec3) + 2*sizeof(int) + sizeof(float), sizeof(float), &shininess);
+        glBufferSubData(GL_ARRAY_BUFFER, cache_location*voxel_object_size_ + 2*sizeof(glm::vec3) + 2*sizeof(int) + 2*sizeof(float), sizeof(float), &opacity);
+
+        // Now emulate this in the CPU cache emulator
+        if (cache_emulator_[cache_location])
+        {
+          (cache_emulator_[cache_location])->is_in_cache_ = false;
+        }
+        cache_emulator_[cache_location] = current_cube;
+
+        num_voxels_added_++;
+        (*itr)->is_in_cache_ = true;
+      }
+    }
 
     itr++;
   }
+  num_voxels_added_ = 0;
 }
 
 } // namespace Anthrax

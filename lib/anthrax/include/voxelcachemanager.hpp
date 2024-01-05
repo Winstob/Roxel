@@ -28,6 +28,8 @@ public:
   void renderCubes();
 
   void updateCache();
+
+  glm::vec3 view_position_; // This is temporary to test usage of the dynamic GPU cache
 private:
   size_t voxel_cache_size_;
   size_t voxel_object_size_; // The size (in bytes) of all vertex attributes for a single voxel

@@ -50,6 +50,9 @@ public:
       node_ = node_->previous();
       return tmp;
     }
+    bool operator==(const iterator& r) const { return node_ == r.node_; }
+    bool operator!=(const iterator& r) const { return node_ != r.node_; }
+
   private:
     VoxelDisplayListNode *node_;
   };

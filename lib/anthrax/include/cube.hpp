@@ -32,6 +32,8 @@ public:
 
     position_ = glm::vec3(0.0, 0.0, 0.0);
     size_ = 1;
+
+    is_in_cache_ = false;
   }
 
   Cube(vec3<float> pos, int size)
@@ -45,6 +47,8 @@ public:
  
     position_ = pos.toGLM();
     size_ = size;
+
+    is_in_cache_ = false;
   }
 
   Cube(uint16_t type_id, vec3<float> position, int size, vec3<float> color, float reflectivity, float shininess, float opacity)
@@ -56,6 +60,8 @@ public:
     reflectivity_ = reflectivity;
     shininess_ = shininess;
     opacity_ = opacity;
+
+    is_in_cache_ = false;
   }
 
   ~Cube()
@@ -113,6 +119,8 @@ public:
   }
 
   bool render_face_[6] = {false, false, false, false, false, false}; // Which faces to render: {left(-x normal), right(+x normal, bottom(-y normal, top(+y normal), front(-z normal), back(+z normal)}
+
+  bool is_in_cache_;
 
 private:
   uint16_t type_id_= 0;
