@@ -15,6 +15,7 @@ VoxelDisplayList::VoxelDisplayList()
 {
   front_ = nullptr;
   back_ = nullptr;
+  size_ = 0;
 }
 
 
@@ -33,12 +34,14 @@ void VoxelDisplayList::push_back(Cube *new_cube)
 {
   if (front_ == nullptr)
   {
-    front_ = new VoxelDisplayListNode(new_cube);
+    front_ = new VoxelDisplayListNode(new_cube, nullptr, nullptr);
     back_ = front_;
-    return;
   }
-
-  back_ = new VoxelDisplayListNode(new_cube, back_, nullptr);
+  else
+  {
+    back_ = new VoxelDisplayListNode(new_cube, back_, nullptr);
+  }
+  size_++;
 }
 
 
@@ -50,8 +53,11 @@ void VoxelDisplayList::push_front(Cube *new_cube)
     back_ = front_;
     return;
   }
-
-  front_ = new VoxelDisplayListNode(new_cube, back_, nullptr);
+  else
+  {
+    front_ = new VoxelDisplayListNode(new_cube, nullptr, front_);
+  }
+  size_++;
 }
 
 

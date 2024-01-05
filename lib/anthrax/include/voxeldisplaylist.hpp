@@ -19,11 +19,47 @@ class VoxelDisplayList
 public:
   VoxelDisplayList();
   ~VoxelDisplayList();
+  size_t size() { return size_; }
   void push_back(Cube *new_cube);
   void push_front(Cube *new_cube);
+
+  class iterator
+  {
+  public:
+    iterator(VoxelDisplayListNode *node = nullptr) : node_(node) {}
+    Cube* operator*() { return node_->getCubePtr(); }
+    iterator& operator++()
+    {
+      node_ = node_->next();
+      return *this;
+    }
+    iterator operator++(int)
+    {
+      iterator tmp(*this);
+      node_ = node_->next();
+      return tmp;
+    }
+    iterator& operator--()
+    {
+      node_ = node_->previous();
+      return *this;
+    }
+    iterator operator--(int)
+    {
+      iterator tmp(*this);
+      node_ = node_->previous();
+      return tmp;
+    }
+  private:
+    VoxelDisplayListNode *node_;
+  };
+
+  iterator begin() { return iterator(front_); }
+
 private:
   VoxelDisplayListNode *front_;
   VoxelDisplayListNode *back_;
+  size_t size_;
 };
 
 

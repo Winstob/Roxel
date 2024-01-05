@@ -40,8 +40,8 @@ int main()
   world.getCubes(&cube_vector);
   for (unsigned int i = 0; i < cube_vector.size(); i++)
   {
-    voxel_display_list.push_back(&(cube_vector[i]));
-    anthrax_handle_->addVoxel(cube_vector[i]);
+    //voxel_display_list.push_back(&(cube_vector[i]));
+    anthrax_handle_->addVoxel(&(cube_vector[i]));
   }
 
   Player player = Player(anthrax_handle_);

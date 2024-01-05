@@ -28,17 +28,6 @@ VoxelDisplayListNode::VoxelDisplayListNode(Cube *cube, VoxelDisplayListNode *pre
 }
 
 
-VoxelDisplayListNode::VoxelDisplayListNode(Cube *cube)
-{
-  VoxelDisplayListNode(cube, nullptr, nullptr);
-}
-
-
-VoxelDisplayListNode::VoxelDisplayListNode()
-{
-  VoxelDisplayListNode(nullptr, nullptr, nullptr);
-}
-
 
 VoxelDisplayListNode::~VoxelDisplayListNode()
 {

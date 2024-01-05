@@ -46,7 +46,7 @@ public:
   int startWindow();
   int renderFrame();
 
-  void addVoxel(Cube cube);
+  void addVoxel(Cube *cube);
   void setCameraPosition(vec3<float> position);
   void setCameraRotation(Quaternion rotation);
 

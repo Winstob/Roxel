@@ -115,6 +115,10 @@ int Anthrax::renderFrame()
   //glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 
+  // Update the voxel cache
+  voxel_cache_manager_->updateCache();
+
+  // Draw the scene
   renderScene();
 
   // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
@@ -153,8 +157,8 @@ void Anthrax::renderScene()
   // Set sunlight settings
   //cube_shader->setVec3("sunlight.direction", glm::vec3(-1.0f, -0.5f, 0.0f));
   cube_shader->setVec3("sunlight.direction", glm::vec3(glm::cos(glfwGetTime()/16), glm::sin(glfwGetTime()/16), 0.0f));
-  cube_shader->setVec3("sunlight.ambient", glm::vec3(0.8));
-  cube_shader->setVec3("sunlight.diffuse", glm::vec3(1.0));
+  cube_shader->setVec3("sunlight.ambient", glm::vec3(0.5, 0.5, 0.7));
+  cube_shader->setVec3("sunlight.diffuse", glm::vec3(0.4, 0.4, 0.2));
   cube_shader->setVec3("sunlight.specular", glm::vec3(0.3));
 
   if (voxel_buffer_.size() > 0)
@@ -251,9 +255,11 @@ void Anthrax::getMousePosition(MousePosition *mouse_pos)
   mouse_pos->setY(mouse_y_);
 }
 
-void Anthrax::addVoxel(Cube cube)
+void Anthrax::addVoxel(Cube *cube)
 {
-  voxel_buffer_.push_back(cube);
+  voxel_cache_manager_->addCube(cube);
+  //voxel_display_list_.push_back(cube);
+  //voxel_buffer_.push_back(*cube);
 }
 
 void Anthrax::setCameraPosition(vec3<float> position)
