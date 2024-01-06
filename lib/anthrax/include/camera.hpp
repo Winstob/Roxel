@@ -54,6 +54,11 @@ public:
     return glm::lookAt(position_, position_ + forward, up);
   }
 
+  glm::vec3 getLookDirection()
+  {
+    return rotation_ * glm::vec3(0.0f, 0.0f, 1.0f);
+  }
+
   // processes input received from a mouse scroll-wheel event. Only requires input on the vertical wheel-axis
   void ProcessMouseScroll(float yoffset)
   {

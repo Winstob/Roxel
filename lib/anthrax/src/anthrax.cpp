@@ -87,7 +87,10 @@ int Anthrax::startWindow()
 
   // Initialize the voxel cache
   voxel_cache_manager_ = new VoxelCacheManager();
-  voxel_cache_manager_->initialize(MB(8));
+  voxel_cache_manager_->initialize(MB(1), [](glm::vec3 position)
+      {
+      return (glm::length(position - camera.position_) < 128 && 2*glm::angle(glm::normalize(position - camera.position_), camera.getLookDirection()) < 3.14/2);
+      });
 
   // Face culling
   glEnable(GL_CULL_FACE);

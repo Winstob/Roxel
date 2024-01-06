@@ -28,8 +28,9 @@ VoxelCacheManager::~VoxelCacheManager()
 }
 
 
-void VoxelCacheManager::initialize(size_t cache_size)
+void VoxelCacheManager::initialize(size_t cache_size, bool (*cache_decision_function)(glm::vec3))
 {
+  cacheDecisionFunction = cache_decision_function;
   voxel_object_size_ = 2*sizeof(glm::vec3) + 3*sizeof(float) + 2*sizeof(int); // The size (in bytes) of all vertex attributes for a single voxel
   max_num_voxels_ = cache_size / voxel_object_size_;
   voxel_cache_size_ = max_num_voxels_ * voxel_object_size_;
@@ -154,7 +155,7 @@ void VoxelCacheManager::updateCache()
     if (!(current_cube->is_in_cache_))
     {
 
-      if (glm::length(current_cube->getPosition() - view_position_) < 100.0)
+      if (cacheDecisionFunction(current_cube->getPosition()))
       {
         // Only add this cube to the cache if it fits these criteria
 
@@ -215,12 +216,10 @@ void VoxelCacheManager::updateCache()
   glBindBuffer(GL_COPY_READ_BUFFER, tmp_vbo);
   glBufferData(GL_COPY_READ_BUFFER, voxel_cache_size_, NULL, GL_DYNAMIC_DRAW);
   glCopyBufferSubData(GL_ARRAY_BUFFER, GL_COPY_READ_BUFFER, 0, 0, voxel_cache_size_);
-  // First of all, we know that exactly num_voxels_added_ voxels were added to the back, so we can move them all to the front at once
+  // We know that exactly num_voxels_added_ voxels were added to the back, so we can move them all to the front at once
   glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_ARRAY_BUFFER, (max_num_voxels_ - num_voxels_added_ - 1) * voxel_object_size_, 0, num_voxels_added_ * voxel_object_size_);
   glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_ARRAY_BUFFER, 0, (num_voxels_added_ - 1) * voxel_object_size_, (max_num_voxels_ - num_voxels_added_) * voxel_object_size_);
   
-  // Next, iterate throught the cache and move any that were used to the front as well, leaving the unused ones in the back.
-
   glDeleteBuffers(1, &tmp_vbo);
   glBindBuffer(GL_COPY_READ_BUFFER, 0);
   glBindBuffer(GL_ARRAY_BUFFER, 0);

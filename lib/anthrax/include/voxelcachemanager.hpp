@@ -22,7 +22,7 @@ class VoxelCacheManager
 public:
   VoxelCacheManager();
   ~VoxelCacheManager();
-  void initialize(size_t cache_size);
+  void initialize(size_t cache_size, bool (*cache_decision_function)(glm::vec3));
   void addCubes(Cube *new_cubes, int num_new_cubes);
   void addCube(Cube *new_cube);
   void renderCubes();
@@ -43,6 +43,8 @@ private:
   VoxelDisplayList voxel_display_list_;
 
   Cube **cache_emulator_;
+
+  bool (*cacheDecisionFunction)(glm::vec3);
 };
 
 } // namespace Anthrax
