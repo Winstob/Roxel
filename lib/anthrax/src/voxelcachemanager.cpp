@@ -24,6 +24,7 @@ VoxelCacheManager::~VoxelCacheManager()
   // These will be cleared anyway by a call to glfwTerminate(), so technically not necessary
   glDeleteVertexArrays(1, &voxel_vao_);
   glDeleteBuffers(1, &voxels_cache_);
+
   free(cache_emulator_);
 }
 
@@ -145,11 +146,21 @@ void VoxelCacheManager::renderCubes()
 
 void VoxelCacheManager::updateCache()
 {
+  // Iterate through the cache to find values that are no longer needed to make space for new ones
+  std::vector<unsigned int> replaceable_cache_indices;
+  for (unsigned int i = 0; i < max_num_voxels_; i++)
+  {
+    if (!cache_emulator_[i] || !cacheDecisionFunction(cache_emulator_[i]->getPosition()))
+    {
+      replaceable_cache_indices.push_back(i);
+    }
+  }
+  
   glBindBuffer(GL_ARRAY_BUFFER, voxels_cache_);
 
-  num_voxels_added_ = 0;
+  unsigned int num_voxels_added = 0;
   VoxelDisplayList::iterator itr = voxel_display_list_.begin();
-  while (num_voxels_added_ < max_num_voxels_-1 && itr != nullptr)
+  while (itr != nullptr && num_voxels_added < replaceable_cache_indices.size())
   {
     Cube *current_cube = *itr;
     if (!(current_cube->is_in_cache_))
@@ -185,7 +196,8 @@ void VoxelCacheManager::updateCache()
         if (current_cube->render_face_[5]) render_faces |= 32u;
 
         // Add this cube to the VBO
-        int cache_location = max_num_voxels_ - num_voxels_added_ - 1;
+        //int cache_location = max_num_voxels_ - num_voxels_added_ - 1;
+        int cache_location = replaceable_cache_indices[num_voxels_added];
         glBufferSubData(GL_ARRAY_BUFFER, cache_location*voxel_object_size_, sizeof(glm::vec3), &position);
         glBufferSubData(GL_ARRAY_BUFFER, cache_location*voxel_object_size_ + sizeof(glm::vec3), sizeof(int), &size);
         glBufferSubData(GL_ARRAY_BUFFER, cache_location*voxel_object_size_ + sizeof(glm::vec3) + sizeof(int), sizeof(int), &render_faces);
@@ -203,37 +215,11 @@ void VoxelCacheManager::updateCache()
         cache_emulator_[cache_location] = current_cube;
         (cache_emulator_[cache_location])->is_in_cache_ = true;
 
-        num_voxels_added_++;
+        num_voxels_added++;
       }
     }
-
     itr++;
   }
-
-  // Now, rearrange the cache so unused voxels are in the back
-  unsigned int tmp_vbo;
-  glGenBuffers(1, &tmp_vbo);
-  glBindBuffer(GL_COPY_READ_BUFFER, tmp_vbo);
-  glBufferData(GL_COPY_READ_BUFFER, voxel_cache_size_, NULL, GL_DYNAMIC_DRAW);
-  glCopyBufferSubData(GL_ARRAY_BUFFER, GL_COPY_READ_BUFFER, 0, 0, voxel_cache_size_);
-  // We know that exactly num_voxels_added_ voxels were added to the back, so we can move them all to the front at once
-  glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_ARRAY_BUFFER, (max_num_voxels_ - num_voxels_added_ - 1) * voxel_object_size_, 0, num_voxels_added_ * voxel_object_size_);
-  glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_ARRAY_BUFFER, 0, (num_voxels_added_ - 1) * voxel_object_size_, (max_num_voxels_ - num_voxels_added_) * voxel_object_size_);
-  
-  glDeleteBuffers(1, &tmp_vbo);
-  glBindBuffer(GL_COPY_READ_BUFFER, 0);
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-  // Replicate this in the cache emulator
-  Cube **tmp_cache = reinterpret_cast<Cube**>(malloc(max_num_voxels_ * sizeof(Cube*)));
-  memcpy(tmp_cache, cache_emulator_, max_num_voxels_ * sizeof(Cube*));
-  // Move recently added voxels to the front
-  memcpy(cache_emulator_, tmp_cache + max_num_voxels_ - num_voxels_added_ - 1, num_voxels_added_ * sizeof(Cube*));
-  memcpy(cache_emulator_ + num_voxels_added_ - 1, tmp_cache, (max_num_voxels_ - num_voxels_added_) * sizeof(Cube*));
-
-  free(tmp_cache);
-
-  num_voxels_added_ = 0;
 }
 
 } // namespace Anthrax
