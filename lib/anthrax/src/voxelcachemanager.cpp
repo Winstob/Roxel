@@ -162,6 +162,11 @@ void VoxelCacheManager::updateCache()
   VoxelDisplayList::iterator itr = voxel_display_list_.begin();
   while (itr != nullptr && num_voxels_added < replaceable_cache_indices.size())
   {
+    if (!(*itr))
+    {
+      itr++;
+      continue;
+    }
     Cube *current_cube = *itr;
     if (!(current_cube->is_in_cache_))
     {

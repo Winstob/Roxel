@@ -51,11 +51,12 @@
 #include <string>
 #include "octree.hpp"
 #include "anthrax_types.hpp"
+#include "anthrax.hpp"
 
 class World
 {
 public:
-  World(std::string directory);
+  World(std::string directory, Anthrax::Anthrax *anthrax_instance);
   void loadArea(Anthrax::vec3<int64_t> center, int load_distance);
   void getCubes(std::vector<Anthrax::Cube> *cube_vector);
 private:
@@ -65,5 +66,7 @@ private:
                                       // equal to 2^zone_depth_.
   std::string directory_; // Location on disk containing this world's files
   Octree octree_; // Container for all voxels
+
+  Anthrax::Anthrax *anthrax_instance_;
 };
 #endif // WORLD_HPP

@@ -15,6 +15,7 @@ class Player
 public:
   Player(Anthrax::Anthrax *anthrax_handle);
   ~Player();
+  Anthrax::vec3<float> getPosition() { return head_position_; }
   void processInput();
   bool updateForce(std::string name, Anthrax::vec3<float> vector);
   void update();

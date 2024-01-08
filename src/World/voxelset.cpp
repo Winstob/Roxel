@@ -45,6 +45,7 @@ VoxelSet& VoxelSet::operator=(const VoxelSet& set)
 uint16_t VoxelSet::getVoxelType()
 {
   // If this is a uniform set, return they type of voxel. Otherwise this could lead to unintended behavior.
+  if (voxel_type_.size() == 0) return 0;
   return voxel_type_[0];
 }
 

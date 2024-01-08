@@ -9,18 +9,6 @@
 #include "cubeconvert.hpp"
 
 
-Octree::Octree()
-{
-  Octree(0, 1);
-}
-
-
-Octree::Octree(unsigned int layer, unsigned int file_layer)
-{
-  Octree(layer, file_layer, "", Anthrax::vec3<int64_t>(0, 0, 0));
-}
-
-
 Octree::Octree(unsigned int layer, unsigned int file_layer, std::string path, Anthrax::vec3<int64_t> center)
 {
   layer_ = layer;
@@ -39,6 +27,8 @@ Octree::Octree(unsigned int layer, unsigned int file_layer, std::string path, An
   {
     is_uniform_ = true;
   }
+  is_leaf_ = is_uniform_;
+  cube_pointer_ = nullptr;
 }
 
 
@@ -50,6 +40,8 @@ Octree::Octree(unsigned int layer, unsigned int file_layer, std::string path, An
   path_ = path;
   voxel_set_ = voxel_set;
   is_uniform_ = voxel_set_.isUniform();
+  is_leaf_ = is_uniform_;
+  cube_pointer_ = nullptr;
 }
 
 
@@ -57,11 +49,9 @@ Octree::~Octree()
 {
   for (unsigned int i = 0; i < 8; i++)
   {
-    if (children_[i] != NULL)
-    {
-      delete children_[i];
-    }
+    if (!children_[i]) delete children_[i];
   }
+  if (cube_pointer_) delete(cube_pointer_);
 }
 
 void Octree::setCubeSettingsFile(std::string file)
@@ -70,9 +60,34 @@ void Octree::setCubeSettingsFile(std::string file)
 }
 
 
+void Octree::setAnthraxPointer(Anthrax::Anthrax *anthrax_instance)
+{
+  anthrax_instance_ = anthrax_instance;
+}
+
+
+void Octree::setLoadDecisionFunction(bool (*load_decision_function)(uint64_t, int))
+{
+  loadDecisionFunction = load_decision_function;
+}
+
+
 void Octree::loadArea(Anthrax::vec3<int64_t> load_center, int load_distance)
 {
-  if (is_uniform_)
+  if (is_leaf_)
+  {
+    for (unsigned int i = 0; i < 8; i++)
+    {
+      if (children_[i])
+      {
+        is_leaf_ = false;
+        break;
+      }
+    }
+    if (!is_leaf_) delete(cube_pointer_);
+  }
+
+  if (is_leaf_)
   {
     if (voxel_set_.getVoxelType() != 0)
     {
@@ -89,11 +104,16 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center, int load_distance)
   Anthrax::vec3<int64_t> quadrant_centers[8];
 
   // Iterate through all 8 quadrants to find which ones need to be loaded
-  bool load_quadrant[8];
+  bool load_quadrant[8] = {false};
   int64_t quadrant_width = (1LL << (layer_-1)); // 2^(layer_-1)
   //std::cout << (quadrant_width) << std::endl;
   for (unsigned int i = 0; i < 8; i++)
   {
+    if (children_[i])
+    {
+      load_quadrant[i] = true;
+      continue;
+    }
     // Find the closest point to the center of the desired loading area
     int64_t min_x, max_x, min_y, max_y, min_z, max_z;
     if (i%2 == 0)
@@ -185,14 +205,14 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center, int load_distance)
     }
     Anthrax::vec3<int64_t> closest_point = Anthrax::vec3<int64_t>(closest_x, closest_y, closest_z);
     float distance = (closest_point - load_center).getMagnitude();
-    load_quadrant[i] = distance <= load_distance;
+    load_quadrant[i] = (distance <= load_distance) && loadDecisionFunction(distance, layer_-1);
   }
 
   if (layer_ <= file_layer_)
   {
     for (unsigned int i = 0; i < 8; i++)
     {
-      if (load_quadrant[i])
+      if (load_quadrant[i] && !children_[i])
       {
         children_[i] = new Octree(layer_ - 1, file_layer_, path_ + std::to_string(i), quadrant_centers[i], voxel_set_.getQuadrant(i));
       }
@@ -202,7 +222,7 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center, int load_distance)
   {
     for (unsigned int i = 0; i < 8; i++)
     {
-      if (load_quadrant[i])
+      if (load_quadrant[i] && !children_[i])
       {
         children_[i] = new Octree(layer_ - 1, file_layer_, path_ + std::to_string(i), quadrant_centers[i]);
       }
@@ -211,7 +231,7 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center, int load_distance)
 
   for (unsigned int i = 0; i < 8; i++)
   {
-    if (load_quadrant[i] && children_[i] != NULL)
+    if (load_quadrant[i])
     {
       children_[i]->loadArea(load_center, load_distance);
     }
@@ -222,12 +242,7 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center, int load_distance)
   // Right face
   for (int i = 1; i < 8; i+=2)
   {
-    if (children_[i] == NULL)
-    {
-      is_transparent = true;
-      break;
-    }
-    if (children_[i]->faceIsTransparent(0))
+    if (!children_[i] || children_[i]->faceIsTransparent(0))
     {
       is_transparent = true;
       break;
@@ -238,12 +253,7 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center, int load_distance)
   is_transparent = false;
   for (int i = 0; i < 8; i+=2)
   {
-    if (children_[i] == NULL)
-    {
-      is_transparent = true;
-      break;
-    }
-    if (children_[i]->faceIsTransparent(1))
+    if (!children_[i] || children_[i]->faceIsTransparent(1))
     {
       is_transparent = true;
       break;
@@ -254,12 +264,7 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center, int load_distance)
   is_transparent = false;
   for (int i = 4; i < 8; i++)
   {
-    if (children_[i] == NULL)
-    {
-      is_transparent = true;
-      break;
-    }
-    if (children_[i]->faceIsTransparent(2))
+    if (!children_[i] || children_[i]->faceIsTransparent(2))
     {
       is_transparent = true;
       break;
@@ -270,12 +275,7 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center, int load_distance)
   is_transparent = false;
   for (int i = 0; i < 4; i++)
   {
-    if (children_[i] == NULL)
-    {
-      is_transparent = true;
-      break;
-    }
-    if (children_[i]->faceIsTransparent(3))
+    if (!children_[i] || children_[i]->faceIsTransparent(3))
     {
       is_transparent = true;
       break;
@@ -286,12 +286,7 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center, int load_distance)
   is_transparent = false;
   for (int i = 2; i < 8; i+=(i%2)*2+1)
   {
-    if (children_[i] == NULL)
-    {
-      is_transparent = true;
-      break;
-    }
-    if (children_[i]->faceIsTransparent(4))
+    if (!children_[i] || children_[i]->faceIsTransparent(4))
     {
       is_transparent = true;
       break;
@@ -302,12 +297,7 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center, int load_distance)
   is_transparent = false;
   for (int i = 0; i < 6; i+=(i%2)*2+1)
   {
-    if (children_[i] == NULL)
-    {
-      is_transparent = true;
-      break;
-    }
-    if (children_[i]->faceIsTransparent(5))
+    if (!children_[i] || children_[i]->faceIsTransparent(5))
     {
       is_transparent = true;
       break;
@@ -319,7 +309,7 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center, int load_distance)
 
 void Octree::getNewNeighbors()
 {
-  if (is_uniform_) return;
+  if (is_leaf_ || is_uniform_) return;
   for (unsigned int i = 0; i < 8; i++)
   {
     if (children_[i] == NULL)
@@ -401,44 +391,58 @@ void Octree::setNeighbors(Octree **neighbors)
 
 void Octree::getCubes(std::vector<Anthrax::Cube> *cube_vector)
 {
-  if (is_uniform_)
+  /*
+  if (cube_pointer_)
   {
-    if (voxel_set_.getVoxelType() == 0) return;
-    Anthrax::vec3<float> center;
-    center.setX(floor(center_.getX()));
-    center.setY(floor(center_.getY()));
-    center.setZ(floor(center_.getZ()));
-    if (!(layer_ == 0)) center = center - Anthrax::vec3<float>(0.5, 0.5, 0.5);
-
-    //cube_vector->push_back(cube_converter_.convert(voxel_set_.getVoxelType(), center, 1 << layer_));
-     
-    //cube_vector->push_back(Anthrax::Cube(Anthrax::vec4<float>(0.5, 0.1, 0.8, 1.0), center, 1 << (layer_)));
-    bool render_face[6];
-    bool render_cube = false;
-    for (unsigned int i = 0; i < 6; i++)
-    {
-      if (neighbors_[i] == NULL)
-      {
-        render_face[i] = true;
-        render_cube = true;
-        continue;
-      }
-      //render_face[i] = neighbors_[i]->faceIsTransparent(i%2 == 0 ? i+1 : i-1);
-      render_face[i] = neighbors_[i]->faceIsTransparent(i);
-      if (render_face[i]) render_cube = true;
-    }
-    if (!render_cube) return; // No faces are visible, so don't draw this cube
-    Anthrax::Cube cube = cube_converter_.convert(voxel_set_.getVoxelType(), center, 1 << layer_);
-    cube.setFaces(render_face);
-    cube_vector->push_back(cube);
-    //(*cube_map)[cube.getTypeID()].push_back(cube);
-    return;
+    delete(cube_pointer_);
   }
-  for (unsigned int i = 0; i < 8; i++)
+  */
+  if (is_leaf_ || is_uniform_)
   {
-    if (children_[i] != NULL)
+    if (!cube_pointer_)
     {
-      children_[i]->getCubes(cube_vector);
+      if (voxel_set_.getVoxelType() == 0) return;
+      Anthrax::vec3<float> center;
+      center.setX(floor(center_.getX()));
+      center.setY(floor(center_.getY()));
+      center.setZ(floor(center_.getZ()));
+      if (!(layer_ == 0)) center = center - Anthrax::vec3<float>(0.5, 0.5, 0.5);
+
+      //cube_vector->push_back(cube_converter_.convert(voxel_set_.getVoxelType(), center, 1 << layer_));
+       
+      //cube_vector->push_back(Anthrax::Cube(Anthrax::vec4<float>(0.5, 0.1, 0.8, 1.0), center, 1 << (layer_)));
+      bool render_face[6] = {false};
+      bool render_cube = false;
+      for (unsigned int i = 0; i < 6; i++)
+      {
+        if (!neighbors_[i] || neighbors_[i]->faceIsTransparent(i))
+        {
+          render_face[i] = true;
+          render_cube = true;
+        }
+        //render_face[i] = neighbors_[i]->faceIsTransparent(i%2 == 0 ? i+1 : i-1);
+      }
+      if (!render_cube) return; // No faces are visible, so don't draw this cube
+      cube_pointer_ = new Anthrax::Cube();
+      *cube_pointer_ = cube_converter_.convert(voxel_set_.getVoxelType(), center, 1 << layer_);
+      cube_pointer_->setFaces(render_face);
+      anthrax_instance_->addVoxel(cube_pointer_);
+      //cube_vector->push_back(cube);
+    }
+  }
+  else
+  {
+    if (cube_pointer_)
+    {
+      delete(cube_pointer_);
+      std::cout << "POAI" << std::endl;
+    }
+    for (unsigned int i = 0; i < 8; i++)
+    {
+      if (children_[i])
+      {
+        children_[i]->getCubes(cube_vector);
+      }
     }
   }
 }
