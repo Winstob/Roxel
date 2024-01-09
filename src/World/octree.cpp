@@ -57,7 +57,7 @@ Octree::~Octree()
   }
   if (cube_pointer_ != nullptr)
   {
-    delete cube_pointer_;
+    cube_pointer_.reset();
     cube_pointer_ = nullptr;
   }
 }
@@ -175,7 +175,7 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center, int load_distance)
   {
     if (cube_pointer_ != nullptr)
     {
-      delete(cube_pointer_);
+      cube_pointer_.reset();
       cube_pointer_ = nullptr;
     }
   }
@@ -396,7 +396,7 @@ void Octree::getCubes()
         //render_face[i] = neighbors_[i]->faceIsTransparent(i%2 == 0 ? i+1 : i-1);
       }
       if (!render_cube) return; // No faces are visible, so don't draw this cube
-      cube_pointer_ = new Anthrax::Cube();
+      cube_pointer_.reset(new Anthrax::Cube());
       *cube_pointer_ = cube_converter_.convert(voxel_set_.getVoxelType(), center, 1 << layer_);
       cube_pointer_->setFaces(render_face);
       anthrax_instance_->addVoxel(cube_pointer_);
