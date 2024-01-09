@@ -247,6 +247,22 @@ void VoxelCacheManager::updateCache()
       continue;
     }
   }
+  uint8_t tmp[voxel_object_size_] = {0};
+  while (num_voxels_added < replaceable_cache_indices.size())
+  {
+    int cache_location = replaceable_cache_indices[num_voxels_added];
+    glBufferSubData(GL_ARRAY_BUFFER, cache_location*voxel_object_size_, voxel_object_size_, &tmp);
+
+    // Now emulate this in the CPU cache emulator
+    if (auto element_to_be_replaced = cache_emulator_[cache_location].lock())
+    {
+      element_to_be_replaced->is_in_cache_ = false;
+    }
+    //cache_emulator_[cache_location] = nullptr;
+
+    num_voxels_added++;
+
+  }
 }
 
 } // namespace Anthrax
