@@ -18,6 +18,7 @@ VoxelSet::VoxelSet(int layer)
   voxel_type_  = std::vector<uint16_t>();
   num_voxels_ = std::vector<int>();
   is_uniform_ = false;
+  calculateVoxelType();
 }
 
 
@@ -28,6 +29,7 @@ VoxelSet::VoxelSet(int layer, std::vector<int> num_voxels, std::vector<uint16_t>
   num_voxels_ = num_voxels;
   voxel_type_ = voxel_type;
   is_uniform_ = (voxel_type_.size() == 1);
+  calculateVoxelType();
 }
 
 
@@ -38,15 +40,41 @@ VoxelSet& VoxelSet::operator=(const VoxelSet& set)
   this->num_voxels_ = set.num_voxels_;
   this->voxel_type_ = set.voxel_type_;
   this->is_uniform_ = set.is_uniform_;
+  this->calculateVoxelType();
   return *this;
+}
+
+
+void VoxelSet::calculateVoxelType()
+{
+  if (num_voxels_.size() == 0)
+  {
+    average_voxel_type_ = 0;
+    return;
+  }
+  std::map<uint16_t, int> voxel_amounts;
+  for (unsigned int i = 0; i < num_voxels_.size(); i++)
+  {
+    if (voxel_type_[i] != 0) voxel_amounts[voxel_type_[i]] += num_voxels_[i];
+  }
+  uint16_t largest_voxel_type = 0;
+  int num_most_voxels = 0;
+  for (std::map<uint16_t, int>::iterator itr = voxel_amounts.begin(); itr != voxel_amounts.end(); itr++)
+  {
+    if (itr->second > num_most_voxels)
+    {
+      num_most_voxels = itr->second;
+      largest_voxel_type = itr->first;
+    }
+  }
+  average_voxel_type_ = largest_voxel_type;
+  if (average_voxel_type_ != 3 && average_voxel_type_ != 0) std::cout << average_voxel_type_ << std::endl;
 }
 
 
 uint16_t VoxelSet::getVoxelType()
 {
-  // If this is a uniform set, return they type of voxel. Otherwise this could lead to unintended behavior.
-  if (voxel_type_.size() == 0) return 0;
-  return voxel_type_[0];
+  return average_voxel_type_;
 }
 
 void VoxelSet::readFile(std::string input_filepath)
@@ -78,6 +106,7 @@ void VoxelSet::readFile(std::string input_filepath)
   {
     is_uniform_ = true;
   }
+  calculateVoxelType();
 }
 
 
