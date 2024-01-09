@@ -104,12 +104,9 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center, int load_distance)
       continue;
     }
     */
-    // Find the closest point to the center of the desired loading area
-    int64_t min_x, max_x, min_y, max_y, min_z, max_z;
+    // Approximate the distance of the closest point to the center of the desired loading area
     if (i%2 == 0)
     {
-      min_x = center_.getX() - quadrant_width;
-      max_x = center_.getX()-1;
       if (layer_ == 1)
         quadrant_centers[i].setX(center_.getX() - (quadrant_width >> 1) - 1);
       else
@@ -117,15 +114,11 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center, int load_distance)
     }
     else
     {
-      min_x = center_.getX();
-      max_x = center_.getX() + quadrant_width-1;
       quadrant_centers[i].setX(center_.getX() + (quadrant_width >> 1));
     }
 
     if (i < 4)
     {
-      min_y = center_.getY() - quadrant_width;
-      max_y = center_.getY()-1;
       if (layer_ == 1)
         quadrant_centers[i].setY(center_.getY() - (quadrant_width >> 1) - 1);
       else
@@ -133,15 +126,11 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center, int load_distance)
     }
     else
     {
-      min_y = center_.getY();
-      max_y = center_.getY() + quadrant_width-1;
       quadrant_centers[i].setY(center_.getY() + (quadrant_width >> 1));
     }
  
     if (i == 0 || i == 1 || i == 4 || i == 5)
     {
-      min_z = center_.getZ() - quadrant_width;
-      max_z = center_.getZ()-1;
       if (layer_ == 1)
         quadrant_centers[i].setZ(center_.getZ() - (quadrant_width >> 1) - 1);
       else
@@ -149,52 +138,10 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center, int load_distance)
     }
     else
     {
-      min_z = center_.getZ();
-      max_z = center_.getZ() + quadrant_width-1;
       quadrant_centers[i].setZ(center_.getZ() + (quadrant_width >> 1));
     }
-
-    // Now solve for the closest point
-    if (load_center.getX() <= min_x)
-    {
-      closest_x = min_x;
-    }
-    else if (load_center.getX() >= max_x)
-    {
-      closest_x = max_x;
-    }
-    else
-    {
-      closest_x = load_center.getX();
-    }
-
-    if (load_center.getY() <= min_y)
-    {
-      closest_y = min_y;
-    }
-    else if (load_center.getY() >= max_y)
-    {
-      closest_y = max_y;
-    }
-    else
-    {
-      closest_y = load_center.getY();
-    }
-
-    if (load_center.getZ() <= min_z)
-    {
-      closest_z = min_z;
-    }
-    else if (load_center.getZ() >= max_z)
-    {
-      closest_z = max_z;
-    }
-    else
-    {
-      closest_z = load_center.getZ();
-    }
-    Anthrax::vec3<int64_t> closest_point = Anthrax::vec3<int64_t>(closest_x, closest_y, closest_z);
-    float distance = (closest_point - load_center).getMagnitude();
+    float distance = (quadrant_centers[i] - load_center).getMagnitude() - (quadrant_width * 0.866025403784);
+    if (distance < 0) distance = 0;
     load_quadrant[i] = loadDecisionFunction(distance, layer_-1);
     if (is_leaf_ && load_quadrant[i])
     {
@@ -232,6 +179,7 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center, int load_distance)
       cube_pointer_ = nullptr;
     }
   }
+
 
   if (layer_ <= file_layer_)
   {
