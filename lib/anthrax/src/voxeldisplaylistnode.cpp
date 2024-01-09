@@ -10,7 +10,7 @@ namespace Anthrax
 {
 
 
-VoxelDisplayListNode::VoxelDisplayListNode(Cube *cube, VoxelDisplayListNode *previous_node, VoxelDisplayListNode *next_node)
+VoxelDisplayListNode::VoxelDisplayListNode(std::weak_ptr<Cube> cube, VoxelDisplayListNode *previous_node, VoxelDisplayListNode *next_node)
 {
   cube_ = cube;
 

@@ -89,7 +89,7 @@ int Anthrax::startWindow()
   voxel_cache_manager_ = new VoxelCacheManager();
   voxel_cache_manager_->initialize(MB(1), [](glm::vec3 position)
       {
-      return (glm::length(position - camera.position_) < 256 && 2*glm::angle(glm::normalize(position - camera.position_), camera.getLookDirection()) < 3.14/3);
+      return (glm::length(position - camera.position_) < 128 && 2*glm::angle(glm::normalize(position - camera.position_), camera.getLookDirection()) < 3.14/3);
       });
 
   // Face culling
@@ -260,7 +260,7 @@ void Anthrax::getMousePosition(MousePosition *mouse_pos)
   mouse_pos->setY(mouse_y_);
 }
 
-void Anthrax::addVoxel(Cube *cube)
+void Anthrax::addVoxel(std::weak_ptr<Cube> cube)
 {
   voxel_cache_manager_->addCube(cube);
   //voxel_display_list_.push_back(cube);

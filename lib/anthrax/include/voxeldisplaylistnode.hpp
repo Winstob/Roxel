@@ -7,6 +7,8 @@
 #ifndef VOXELDISPLAYLISTNODE_HPP
 #define VOXELDISPLAYLISTNODE_HPP
 
+#include <memory>
+
 #include "cube.hpp"
 
 namespace Anthrax
@@ -15,18 +17,18 @@ namespace Anthrax
 class VoxelDisplayListNode
 {
 public:
-  VoxelDisplayListNode(Cube *cube, VoxelDisplayListNode *previous_cube, VoxelDisplayListNode *next_cube);
-  VoxelDisplayListNode(Cube *cube) : VoxelDisplayListNode(cube, nullptr, nullptr) {}
-  VoxelDisplayListNode() : VoxelDisplayListNode(nullptr, nullptr, nullptr) {}
+  VoxelDisplayListNode(std::weak_ptr<Cube> cube, VoxelDisplayListNode *previous_cube, VoxelDisplayListNode *next_cube);
+  VoxelDisplayListNode(std::weak_ptr<Cube> cube) : VoxelDisplayListNode(cube, nullptr, nullptr) {}
+  VoxelDisplayListNode() : VoxelDisplayListNode(std::weak_ptr<Cube>(), nullptr, nullptr) {}
   ~VoxelDisplayListNode();
 
   void setPrevious(VoxelDisplayListNode *new_previous_node);
   void setNext(VoxelDisplayListNode *new_next_node);
   VoxelDisplayListNode* next() const { return next_node_; }
   VoxelDisplayListNode* previous() const { return previous_node_; }
-  Cube* getCubePtr() { return cube_; }
-private:
-  Cube *cube_;
+  std::weak_ptr<Cube> getCubePtr() { return cube_; }
+//private:
+  std::weak_ptr<Cube> cube_;
   VoxelDisplayListNode *previous_node_;
   VoxelDisplayListNode *next_node_;
 };
