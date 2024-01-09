@@ -44,7 +44,7 @@ private:
   Anthrax::vec3<int64_t> center_; // The center of the octree - used to find the quadrant of any given location
   bool transparent_face_[6] = {true, true, true, true, true, true}; // List of which faces are partially or completely transparent - any adjacent faces on adjacent blocks must be drawn. This list matches inversely to Anthrax::Cube::render_face_ variables to avoid extra calculations, so the list goes in order as follows: {right(+x normal), left(-x normal, top(+y normal, bottom(-y normal), back(+z normal), front(-z normal)}
   
-  Anthrax::Cube *cube_pointer_;
+std::shared_ptr<Anthrax::Cube> cube_pointer_;
 
   static CubeConvert cube_converter_;
   static Anthrax::Anthrax *anthrax_instance_;

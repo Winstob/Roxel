@@ -20,14 +20,14 @@ public:
   VoxelDisplayList();
   ~VoxelDisplayList();
   size_t size() { return size_; }
-  void push_back(Cube *new_cube);
-  void push_front(Cube *new_cube);
+  void push_back(std::weak_ptr<Cube> new_cube);
+  void push_front(std::weak_ptr<Cube> new_cube);
 
   class iterator
   {
   public:
     iterator(VoxelDisplayListNode *node = nullptr) : node_(node) {}
-    Cube* operator*() { return node_->getCubePtr(); }
+    std::weak_ptr<Cube> operator*() { return node_->cube_; }
     iterator& operator++()
     {
       node_ = node_->next();
@@ -53,11 +53,12 @@ public:
     bool operator==(const iterator& r) const { return node_ == r.node_; }
     bool operator!=(const iterator& r) const { return node_ != r.node_; }
 
-  private:
     VoxelDisplayListNode *node_;
   };
 
   iterator begin() { return iterator(front_); }
+
+  iterator erase(iterator itr);
 
 private:
   VoxelDisplayListNode *front_;

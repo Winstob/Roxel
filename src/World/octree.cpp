@@ -49,15 +49,15 @@ Octree::~Octree()
 {
   for (unsigned int i = 0; i < 8; i++)
   {
-    if (!children_[i])
+    if (children_[i] != nullptr)
     {
       delete children_[i];
       children_[i] = nullptr;
     }
   }
-  if (cube_pointer_)
+  if (cube_pointer_ != nullptr)
   {
-    delete(cube_pointer_);
+    delete cube_pointer_;
     cube_pointer_ = nullptr;
   }
 }

@@ -78,13 +78,14 @@ void VoxelCacheManager::initialize(size_t cache_size, bool (*cache_decision_func
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
   // Set up CPU side cache emulator - this is to help control how to organize the GPU cache (removal and addition of voxels)
-  cache_emulator_ = reinterpret_cast<Cube**>(calloc(sizeof(Cube*), max_num_voxels_));
+  cache_emulator_ = reinterpret_cast<std::weak_ptr<Cube>*>(calloc(sizeof(std::weak_ptr<Cube>), max_num_voxels_));
 
 }
 
 
 void VoxelCacheManager::addCubes(Cube *new_cubes, int num_new_cubes)
 {
+  /*
   glBindBuffer(GL_ARRAY_BUFFER, voxels_cache_);
   for (unsigned int i = 0; i < num_new_cubes; i++)
   {
@@ -96,12 +97,10 @@ void VoxelCacheManager::addCubes(Cube *new_cubes, int num_new_cubes)
     GLfloat shininess = current_cube.getShininess();
     GLfloat opacity = current_cube.getOpacity();
 
-    /*
     // set cube position and scale
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, current_cube.getPosition());
     model = glm::scale(model, glm::vec3(current_cube.getSize()));
-    */
 
     glm::vec3 position = current_cube.getPosition();
     GLint size = current_cube.getSize();
@@ -124,10 +123,11 @@ void VoxelCacheManager::addCubes(Cube *new_cubes, int num_new_cubes)
     glBufferSubData(GL_ARRAY_BUFFER, i*voxel_object_size_ + 2*sizeof(glm::vec3) + 2*sizeof(int) + sizeof(float), sizeof(float), &shininess);
     glBufferSubData(GL_ARRAY_BUFFER, i*voxel_object_size_ + 2*sizeof(glm::vec3) + 2*sizeof(int) + 2*sizeof(float), sizeof(float), &opacity);
   }
+  */
 }
 
 
-void VoxelCacheManager::addCube(Cube *new_cube)
+void VoxelCacheManager::addCube(std::weak_ptr<Cube> new_cube)
 {
   voxel_display_list_.push_back(new_cube);
 }
@@ -146,11 +146,25 @@ void VoxelCacheManager::renderCubes()
 
 void VoxelCacheManager::updateCache()
 {
+  // Free up space by removing elements in the main VoxelDisplayList that have been deleted
+  for (VoxelDisplayList::iterator itr = voxel_display_list_.begin(); itr != nullptr;)
+  {
+    if ((*itr).expired())
+    {
+      itr = voxel_display_list_.erase(itr);
+      std::cout << "POOP" << std::endl;
+    }
+    else
+    {
+      itr++;
+    }
+  }
+  std::cout << voxel_display_list_.size();
   // Iterate through the cache to find values that are no longer needed to make space for new ones
   std::vector<unsigned int> replaceable_cache_indices;
   for (unsigned int i = 0; i < max_num_voxels_; i++)
   {
-    if (!cache_emulator_[i] || !cacheDecisionFunction(cache_emulator_[i]->getPosition()))
+    if (cache_emulator_[i].expired() || !cacheDecisionFunction((*cache_emulator_[i]).getPosition()))
     {
       replaceable_cache_indices.push_back(i);
     }
@@ -167,7 +181,7 @@ void VoxelCacheManager::updateCache()
       itr++;
       continue;
     }
-    Cube *current_cube = *itr;
+    std::weak_ptr<Cube> current_cube = *itr;
     if (!(current_cube->is_in_cache_))
     {
 
