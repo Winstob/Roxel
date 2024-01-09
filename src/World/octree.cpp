@@ -80,7 +80,7 @@ void Octree::setLoadDecisionFunction(bool (*load_decision_function)(uint64_t, in
 }
 
 
-void Octree::loadArea(Anthrax::vec3<int64_t> load_center, int load_distance)
+void Octree::loadArea(Anthrax::vec3<int64_t> load_center)
 {
   bool was_leaf = is_leaf_;
   is_leaf_ = true;
@@ -206,7 +206,7 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center, int load_distance)
   {
     if (load_quadrant[i])
     {
-      children_[i]->loadArea(load_center, load_distance);
+      children_[i]->loadArea(load_center);
     }
   }
 

@@ -25,7 +25,7 @@ public:
   void setCubeSettingsFile(std::string file);
   void setAnthraxPointer(Anthrax::Anthrax *anthrax_instance);
   void setLoadDecisionFunction(bool (*loadDecisionFunction)(uint64_t, int));
-  void loadArea(Anthrax::vec3<int64_t> load_center, int load_distance);
+  void loadArea(Anthrax::vec3<int64_t> load_center);
   void getNewNeighbors();
   void setNeighbors(Octree **neighbors);
   void getCubes();

@@ -57,7 +57,7 @@ class World
 {
 public:
   World(std::string directory, Anthrax::Anthrax *anthrax_instance);
-  void loadArea(Anthrax::vec3<int64_t> center, int load_distance);
+  void loadArea(Anthrax::vec3<int64_t> center);
   void getCubes();
 private:
   const unsigned int num_layers_ = 32; // Number of layers in the octree - total world size in one axis is equal to 2^num_layers_
