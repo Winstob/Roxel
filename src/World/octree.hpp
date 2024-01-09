@@ -28,7 +28,7 @@ public:
   void loadArea(Anthrax::vec3<int64_t> load_center, int load_distance);
   void getNewNeighbors();
   void setNeighbors(Octree **neighbors);
-  void getCubes(std::vector<Anthrax::Cube> *cube_vector);
+  void getCubes();
   bool isUniform() { return is_uniform_; }
   uint16_t getVoxelType() { return voxel_set_.getVoxelType(); }
   bool faceIsTransparent(uint8_t face) { return transparent_face_[face]; }
@@ -39,8 +39,8 @@ private:
   std::string path_; // The path to get from the top layer to this one - formatted as "[0-7]*"
   bool is_uniform_; // True if all voxels in all subtrees are of the same type
   bool is_leaf_; // True if all voxels in all subtrees are of the same type
-  Octree *children_[8] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL}; // Pointers to the children
-  Octree *neighbors_[6] = {NULL, NULL, NULL, NULL, NULL, NULL}; // Pointers to neighbors
+  Octree *children_[8] = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}; // Pointers to the children
+  Octree *neighbors_[6] = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}; // Pointers to neighbors
   Anthrax::vec3<int64_t> center_; // The center of the octree - used to find the quadrant of any given location
   bool transparent_face_[6] = {true, true, true, true, true, true}; // List of which faces are partially or completely transparent - any adjacent faces on adjacent blocks must be drawn. This list matches inversely to Anthrax::Cube::render_face_ variables to avoid extra calculations, so the list goes in order as follows: {right(+x normal), left(-x normal, top(+y normal, bottom(-y normal), back(+z normal), front(-z normal)}
   

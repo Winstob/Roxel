@@ -49,9 +49,17 @@ Octree::~Octree()
 {
   for (unsigned int i = 0; i < 8; i++)
   {
-    if (!children_[i]) delete children_[i];
+    if (!children_[i])
+    {
+      delete children_[i];
+      children_[i] = nullptr;
+    }
   }
-  if (cube_pointer_) delete(cube_pointer_);
+  if (cube_pointer_)
+  {
+    delete(cube_pointer_);
+    cube_pointer_ = nullptr;
+  }
 }
 
 void Octree::setCubeSettingsFile(std::string file)
@@ -74,30 +82,9 @@ void Octree::setLoadDecisionFunction(bool (*load_decision_function)(uint64_t, in
 
 void Octree::loadArea(Anthrax::vec3<int64_t> load_center, int load_distance)
 {
-  if (is_leaf_)
-  {
-    for (unsigned int i = 0; i < 8; i++)
-    {
-      if (children_[i])
-      {
-        is_leaf_ = false;
-        break;
-      }
-    }
-    if (!is_leaf_) delete(cube_pointer_);
-  }
+  bool was_leaf = is_leaf_;
+  is_leaf_ = true;
 
-  if (is_leaf_)
-  {
-    if (voxel_set_.getVoxelType() != 0)
-    {
-      for (unsigned int i = 0; i < 6; i++)
-      {
-        transparent_face_[i] = false;
-      }
-    }
-    return;
-  }
   int64_t closest_x, closest_y, closest_z;
 
   // Might as well find the new centers now since we'll need them later
@@ -109,11 +96,14 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center, int load_distance)
   //std::cout << (quadrant_width) << std::endl;
   for (unsigned int i = 0; i < 8; i++)
   {
+    /*
     if (children_[i])
     {
       load_quadrant[i] = true;
+      is_leaf_ = false;
       continue;
     }
+    */
     // Find the closest point to the center of the desired loading area
     int64_t min_x, max_x, min_y, max_y, min_z, max_z;
     if (i%2 == 0)
@@ -205,14 +195,49 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center, int load_distance)
     }
     Anthrax::vec3<int64_t> closest_point = Anthrax::vec3<int64_t>(closest_x, closest_y, closest_z);
     float distance = (closest_point - load_center).getMagnitude();
-    load_quadrant[i] = (distance <= load_distance) && loadDecisionFunction(distance, layer_-1);
+    load_quadrant[i] = loadDecisionFunction(distance, layer_-1);
+    if (is_leaf_ && load_quadrant[i])
+    {
+      is_leaf_ = false;
+    }
+  }
+
+  if (!was_leaf && is_leaf_)
+  {
+    // The current layer was not a leaf before (has children) but now it is
+    // delete children
+    for (unsigned int i = 0; i < 8; i++)
+    {
+      if (children_[i] != nullptr)
+      {
+        delete(children_[i]);
+        children_[i] = nullptr;
+      }
+    }
+
+    if (voxel_set_.getVoxelType() != 0)
+    {
+      for (unsigned int i = 0; i < 6; i++)
+      {
+        transparent_face_[i] = false;
+      }
+    }
+    return;
+  }
+  else if (was_leaf && !is_leaf_)
+  {
+    if (cube_pointer_ != nullptr)
+    {
+      delete(cube_pointer_);
+      cube_pointer_ = nullptr;
+    }
   }
 
   if (layer_ <= file_layer_)
   {
     for (unsigned int i = 0; i < 8; i++)
     {
-      if (load_quadrant[i] && !children_[i])
+      if (load_quadrant[i] && children_[i] == nullptr)
       {
         children_[i] = new Octree(layer_ - 1, file_layer_, path_ + std::to_string(i), quadrant_centers[i], voxel_set_.getQuadrant(i));
       }
@@ -222,7 +247,7 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center, int load_distance)
   {
     for (unsigned int i = 0; i < 8; i++)
     {
-      if (load_quadrant[i] && !children_[i])
+      if (load_quadrant[i] && children_[i] == nullptr)
       {
         children_[i] = new Octree(layer_ - 1, file_layer_, path_ + std::to_string(i), quadrant_centers[i]);
       }
@@ -389,7 +414,7 @@ void Octree::setNeighbors(Octree **neighbors)
 }
 
 
-void Octree::getCubes(std::vector<Anthrax::Cube> *cube_vector)
+void Octree::getCubes()
 {
   /*
   if (cube_pointer_)
@@ -397,7 +422,7 @@ void Octree::getCubes(std::vector<Anthrax::Cube> *cube_vector)
     delete(cube_pointer_);
   }
   */
-  if (is_leaf_ || is_uniform_)
+  if (is_leaf_)
   {
     if (!cube_pointer_)
     {
@@ -432,16 +457,18 @@ void Octree::getCubes(std::vector<Anthrax::Cube> *cube_vector)
   }
   else
   {
+    /*
     if (cube_pointer_)
     {
       delete(cube_pointer_);
       std::cout << "POAI" << std::endl;
     }
+    */
     for (unsigned int i = 0; i < 8; i++)
     {
       if (children_[i])
       {
-        children_[i]->getCubes(cube_vector);
+        children_[i]->getCubes();
       }
     }
   }
