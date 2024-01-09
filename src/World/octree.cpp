@@ -82,6 +82,18 @@ void Octree::setLoadDecisionFunction(bool (*load_decision_function)(uint64_t, in
 
 void Octree::loadArea(Anthrax::vec3<int64_t> load_center)
 {
+  if (is_uniform_) 
+  {
+    if (voxel_set_.getVoxelType() != 0)
+    {
+      for (unsigned int i = 0; i < 6; i++)
+      {
+        transparent_face_[i] = false;
+      }
+    }
+    return;
+  }
+
   bool was_leaf = is_leaf_;
   is_leaf_ = true;
 
@@ -282,7 +294,7 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center)
 
 void Octree::getNewNeighbors()
 {
-  if (is_leaf_ || is_uniform_) return;
+  //if (is_leaf_ || is_uniform_) return;
   for (unsigned int i = 0; i < 8; i++)
   {
     if (children_[i] == NULL)
@@ -372,6 +384,23 @@ void Octree::getCubes()
   */
   if (is_leaf_)
   {
+    bool render_face[6] = {false};
+    bool render_cube = false;
+    for (unsigned int i = 0; i < 6; i++)
+    {
+      if (!neighbors_[i] || neighbors_[i]->faceIsTransparent(i))
+      {
+        render_face[i] = true;
+        render_cube = true;
+      }
+      //render_face[i] = neighbors_[i]->faceIsTransparent(i%2 == 0 ? i+1 : i-1);
+    }
+    if (!render_cube) // No faces are visible, so don't draw this cube
+    {
+      cube_pointer_.reset();
+      return;
+    }
+
     if (!cube_pointer_)
     {
       if (voxel_set_.getVoxelType() == 0) return;
@@ -384,18 +413,6 @@ void Octree::getCubes()
       //cube_vector->push_back(cube_converter_.convert(voxel_set_.getVoxelType(), center, 1 << layer_));
        
       //cube_vector->push_back(Anthrax::Cube(Anthrax::vec4<float>(0.5, 0.1, 0.8, 1.0), center, 1 << (layer_)));
-      bool render_face[6] = {false};
-      bool render_cube = false;
-      for (unsigned int i = 0; i < 6; i++)
-      {
-        if (!neighbors_[i] || neighbors_[i]->faceIsTransparent(i))
-        {
-          render_face[i] = true;
-          render_cube = true;
-        }
-        //render_face[i] = neighbors_[i]->faceIsTransparent(i%2 == 0 ? i+1 : i-1);
-      }
-      if (!render_cube) return; // No faces are visible, so don't draw this cube
       cube_pointer_.reset(new Anthrax::Cube());
       *cube_pointer_ = cube_converter_.convert(voxel_set_.getVoxelType(), center, 1 << layer_);
       cube_pointer_->setFaces(render_face);
