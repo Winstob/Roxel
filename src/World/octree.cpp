@@ -27,7 +27,7 @@ Octree::Octree(unsigned int layer, unsigned int file_layer, std::string path, An
   {
     is_uniform_ = true;
   }
-  is_leaf_ = is_uniform_;
+  is_leaf_ = false;
   cube_pointer_ = nullptr;
 }
 
@@ -40,7 +40,7 @@ Octree::Octree(unsigned int layer, unsigned int file_layer, std::string path, An
   path_ = path;
   voxel_set_ = voxel_set;
   is_uniform_ = voxel_set_.isUniform();
-  is_leaf_ = is_uniform_;
+  is_leaf_ = false;
   cube_pointer_ = nullptr;
 }
 
@@ -161,7 +161,11 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center)
     }
   }
 
-  if (!was_leaf && is_leaf_)
+  if (was_leaf && is_leaf_)
+  {
+    return;
+  }
+  else if (!was_leaf && is_leaf_)
   {
     // The current layer was not a leaf before (has children) but now it is
     // delete children
@@ -191,7 +195,6 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center)
       cube_pointer_ = nullptr;
     }
   }
-
 
   if (layer_ <= file_layer_)
   {

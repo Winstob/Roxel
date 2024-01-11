@@ -15,8 +15,8 @@ VoxelSet::VoxelSet(int total_num_voxels)
   total_num_voxels_ = total_num_voxels;
   //num_counter_bytes_ = ceil(3*layer_/8);
   num_counter_bytes_ = 4;
-  voxel_type_  = std::vector<uint16_t>();
   num_voxels_ = std::vector<int>();
+  voxel_type_ = std::vector<uint16_t>();
   is_uniform_ = false;
   calculateVoxelType();
 }
@@ -120,8 +120,8 @@ VoxelSet VoxelSet::getQuadrant(int quadrant)
 
   int index = 0;
   int counter = 0;
-  std::vector<uint16_t> new_voxel_type  = std::vector<uint16_t>();
   std::vector<int> new_num_voxels = std::vector<int>();
+  std::vector<uint16_t> new_voxel_type  = std::vector<uint16_t>();
 
   // Move to starting position
   while (counter < start)
@@ -279,7 +279,7 @@ void VoxelSet::bisect(VoxelSet *first, VoxelSet *second)
 void VoxelSet::generateAirFile(std::string filepath)
 {
   std::ofstream file(filepath, std::ios::binary);
-  uint32_t num_voxels = 1 << (total_num_voxels_);
+  uint32_t num_voxels = total_num_voxels_;
   uint16_t voxel_type = 0;
 
   file.write(reinterpret_cast<const char*>(&num_voxels), 4);
