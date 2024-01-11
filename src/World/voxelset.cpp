@@ -10,9 +10,9 @@
 #include <cmath>
 #include <iostream>
 
-VoxelSet::VoxelSet(int layer)
+VoxelSet::VoxelSet(int total_num_voxels)
 {
-  layer_ = layer;
+  total_num_voxels_ = total_num_voxels;
   //num_counter_bytes_ = ceil(3*layer_/8);
   num_counter_bytes_ = 4;
   voxel_type_  = std::vector<uint16_t>();
@@ -22,9 +22,9 @@ VoxelSet::VoxelSet(int layer)
 }
 
 
-VoxelSet::VoxelSet(int layer, std::vector<int> num_voxels, std::vector<uint16_t> voxel_type)
+VoxelSet::VoxelSet(int total_num_voxels, std::vector<int> num_voxels, std::vector<uint16_t> voxel_type)
 {
-  layer_ = layer;
+  total_num_voxels_ = total_num_voxels;
   num_counter_bytes_ = 4;
   num_voxels_ = num_voxels;
   voxel_type_ = voxel_type;
@@ -35,7 +35,7 @@ VoxelSet::VoxelSet(int layer, std::vector<int> num_voxels, std::vector<uint16_t>
 
 VoxelSet& VoxelSet::operator=(const VoxelSet& set)
 {
-  this->layer_ = set.layer_;
+  this->total_num_voxels_ = set.total_num_voxels_;
   this->num_counter_bytes_ = set.num_counter_bytes_;
   this->num_voxels_ = set.num_voxels_;
   this->voxel_type_ = set.voxel_type_;
@@ -74,6 +74,7 @@ void VoxelSet::calculateVoxelType()
 
 uint16_t VoxelSet::getVoxelType()
 {
+  calculateVoxelType();
   return average_voxel_type_;
 }
 
@@ -112,8 +113,8 @@ void VoxelSet::readFile(std::string input_filepath)
 
 VoxelSet VoxelSet::getQuadrant(int quadrant)
 {
-  int set_length = 1 << (3*layer_); // 2^(3*layer_)
-  int quadrant_set_length = set_length >> 3; // set_length/8 because there are 8 quadrants
+  //int set_length = 1 << (3*layer_); // 2^(3*layer_)
+  int quadrant_set_length = total_num_voxels_ >> 3; // set_length/8 because there are 8 quadrants
   int start = quadrant * quadrant_set_length;
   int end = start + quadrant_set_length - 1;
 
@@ -188,14 +189,97 @@ VoxelSet VoxelSet::getQuadrant(int quadrant)
       continue;
     }
   }
-  return VoxelSet(layer_ - 1, new_num_voxels, new_voxel_type);
+  return VoxelSet(total_num_voxels_ >> 3, new_num_voxels, new_voxel_type);
 }
+
+
+void VoxelSet::bisect(VoxelSet *first, VoxelSet *second)
+{
+  //int set_length = 1 << (3*layer_); // 2^(3*layer_)
+  int set_length = total_num_voxels_;
+  int half_length = set_length >> 1;
+
+  int index = 0;
+  int counter = 0;
+  std::vector<int> new_num_voxels = std::vector<int>();
+  std::vector<uint16_t> new_voxel_type = std::vector<uint16_t>();
+  int next_first_num_voxels = 0;
+  uint16_t next_first_voxel_type = 0;
+
+
+  while (counter < half_length)
+  {
+    int current_section_size = num_voxels_[index];
+    if (current_section_size == 0)
+    {
+      index++;
+      continue;
+    }
+    if (counter + current_section_size <= half_length)
+    {
+      new_num_voxels.push_back(current_section_size);
+      new_voxel_type.push_back(voxel_type_[index]);
+      index++;
+      counter += current_section_size;
+      continue;
+    }
+    if (counter + current_section_size > half_length)
+    {
+      new_num_voxels.push_back(half_length - counter);
+      new_voxel_type.push_back(voxel_type_[index]);
+
+      next_first_num_voxels = current_section_size + counter - half_length;
+      next_first_voxel_type = voxel_type_[index];
+
+      index++;
+      counter += current_section_size;
+      continue;
+    }
+  }
+  *first = VoxelSet(total_num_voxels_ >> 1, new_num_voxels, new_voxel_type);
+
+
+  new_num_voxels = std::vector<int>();
+  new_voxel_type  = std::vector<uint16_t>();
+  if (next_first_num_voxels != 0)
+  {
+    new_num_voxels.push_back(next_first_num_voxels);
+    new_voxel_type.push_back(next_first_voxel_type);
+  }
+
+  while (counter < set_length)
+  {
+    int current_section_size = num_voxels_[index];
+    if (current_section_size == 0)
+    {
+      index++;
+      continue;
+    }
+    if (counter + current_section_size <= set_length)
+    {
+      new_num_voxels.push_back(current_section_size);
+      new_voxel_type.push_back(voxel_type_[index]);
+      index++;
+      counter += current_section_size;
+      continue;
+    }
+    if (counter + current_section_size > set_length)
+    {
+      new_num_voxels.push_back(set_length - counter);
+      new_voxel_type.push_back(voxel_type_[index]);
+      counter += current_section_size;
+      continue;
+    }
+  }
+  *second = VoxelSet(total_num_voxels_ >> 1, new_num_voxels, new_voxel_type);
+}
+
 
 
 void VoxelSet::generateAirFile(std::string filepath)
 {
   std::ofstream file(filepath, std::ios::binary);
-  uint32_t num_voxels = 1 << (3*layer_);
+  uint32_t num_voxels = 1 << (total_num_voxels_);
   uint16_t voxel_type = 0;
 
   file.write(reinterpret_cast<const char*>(&num_voxels), 4);

@@ -19,7 +19,7 @@ Octree::Octree(unsigned int layer, unsigned int file_layer, std::string path, An
 
   if (layer_ == file_layer_)
   {
-    voxel_set_ = VoxelSet(layer_);
+    voxel_set_ = VoxelSet(1 << (3*layer_));
     voxel_set_.readFile(path_ + ".zn");
     is_uniform_ = voxel_set_.isUniform();
   }

@@ -17,16 +17,17 @@ class VoxelSet
 {
 public:
   VoxelSet() { VoxelSet(0); }
-  VoxelSet(int layer);
-  VoxelSet(int layer, std::vector<int> num_voxels, std::vector<uint16_t> voxel_type);
+  VoxelSet(int total_num_voxels);
+  VoxelSet(int total_num_voxels, std::vector<int> num_voxels, std::vector<uint16_t> voxel_type);
   VoxelSet& operator=(const VoxelSet& set);
   void calculateVoxelType();
   uint16_t getVoxelType();
   void readFile(std::string filepath);
   bool isUniform() { return is_uniform_; }
   VoxelSet getQuadrant(int quadrant);
+  void bisect(VoxelSet *first, VoxelSet *second);
 private:
-  int layer_;
+  int total_num_voxels_;
   int num_counter_bytes_;
   std::vector<uint16_t> voxel_type_; // Stores the type of voxel at a certain index
   std::vector<int> num_voxels_; // Stores the number of same-type voxels in order (more info in world.hpp)
