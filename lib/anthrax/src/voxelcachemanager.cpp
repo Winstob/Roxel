@@ -247,6 +247,7 @@ void VoxelCacheManager::updateCache()
       continue;
     }
   }
+  // Remove all unused cache elements - they could be blocking smaller sub-cubes
   uint8_t tmp[voxel_object_size_] = {0};
   while (num_voxels_added < replaceable_cache_indices.size())
   {

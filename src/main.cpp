@@ -34,7 +34,7 @@ int main()
   world.getCubes(&cube_map);
   anthrax_handle_->voxel_buffer_map_ = cube_map;
   */
-  world.getCubes();
+  //world.getCubes();
 
   Player player = Player(anthrax_handle_);
   //player.updateForce("gravity", Anthrax::vec3<float>(0.0, -9.8, 0.0));
@@ -59,7 +59,6 @@ int main()
 #endif
     Anthrax::vec3<int64_t> position = Anthrax::vec3<int64_t>(player.getPosition().getX(), player.getPosition().getY(), player.getPosition().getZ());
     world.loadArea(position);
-    world.getCubes();
 
     window_closed = anthrax_handle_->renderFrame();
     player.processInput();

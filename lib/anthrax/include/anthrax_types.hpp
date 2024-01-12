@@ -91,21 +91,27 @@ public:
   void setX(T x)
   {
     x_ = x;
+    magnitude_valid_ = false;
   }
 
   void setY(T y)
   {
     y_ = y;
+    magnitude_valid_ = false;
   }
 
   void setZ(T z)
   {
     z_ = z;
+    magnitude_valid_ = false;
   }
 
   float getMagnitude()
   {
-    return sqrt(x_*x_ + y_*y_ + z_*z_);
+    if (magnitude_valid_) return magnitude_;
+    magnitude_ = sqrt(x_*x_ + y_*y_ + z_*z_);
+    magnitude_valid_ = true;
+    return magnitude_;
   }
 
   void normalize()
@@ -131,6 +137,8 @@ private:
   T x_;
   T y_;
   T z_;
+  float magnitude_;
+  bool magnitude_valid_ = false;
 };
 
 template<class T>

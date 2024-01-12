@@ -33,7 +33,7 @@ public:
   uint16_t getVoxelType() { return voxel_set_.getVoxelType(); }
   bool faceIsTransparent(uint8_t face) { return transparent_face_[face]; }
 
-  bool transparency_changed_ = false;
+  bool neighbors_changed_ = false;
 private:
   unsigned int layer_; // The location of this layer - layer 0 will always be a leaf 
   unsigned int file_layer_; // The layer at which files need to be read in
@@ -45,7 +45,6 @@ private:
   Octree *neighbors_[6] = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}; // Pointers to neighbors
   Anthrax::vec3<int64_t> center_; // The center of the octree - used to find the quadrant of any given location
   bool transparent_face_[6] = {true, true, true, true, true, true}; // List of which faces are partially or completely transparent - any adjacent faces on adjacent blocks must be drawn. This list matches inversely to Anthrax::Cube::render_face_ variables to avoid extra calculations, so the list goes in order as follows: {right(+x normal), left(-x normal, top(+y normal, bottom(-y normal), back(+z normal), front(-z normal)}
-  bool neighbors_changed_ = false;
   
 std::shared_ptr<Anthrax::Cube> cube_pointer_;
 

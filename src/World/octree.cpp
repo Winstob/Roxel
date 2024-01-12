@@ -82,7 +82,6 @@ void Octree::setLoadDecisionFunction(bool (*load_decision_function)(uint64_t, in
 
 void Octree::loadArea(Anthrax::vec3<int64_t> load_center)
 {
-  transparency_changed_ = false;
   if (is_uniform_) 
   {
     is_leaf_ = true;
@@ -108,17 +107,13 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center)
 
     // Iterate through all 8 quadrants to find the centers of each
     int64_t quadrant_width = (1LL << (layer_-1)); // 2^(layer_-1)
-    //std::cout << (quadrant_width) << std::endl;
     for (unsigned int i = 0; i < 8; i++)
     {
-      /*
-      if (children_[i])
+      if (children_[i] != nullptr)
       {
-        load_quadrant[i] = true;
-        is_leaf_ = false;
+        // Don't need to calculate the center since it won't be used anyway
         continue;
       }
-      */
       // Approximate the distance of the closest point to the center of the desired loading area
       if (i%2 == 0)
       {
@@ -230,8 +225,11 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center)
       break;
     }
   }
-  if (transparent_face_[0] != is_transparent) transparency_changed_ = true;
-  transparent_face_[0] = is_transparent;
+  if (transparent_face_[0] != is_transparent)
+  {
+    if (neighbors_[1] != nullptr) neighbors_[1]->neighbors_changed_ = true;
+    transparent_face_[0] = is_transparent;
+  }
   // Left face
   is_transparent = false;
   for (int i = 0; i < 8; i+=2)
@@ -242,8 +240,11 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center)
       break;
     }
   }
-  if (transparent_face_[1] != is_transparent) transparency_changed_ = true;
-  transparent_face_[1] = is_transparent;
+  if (transparent_face_[1] != is_transparent)
+  {
+    if (neighbors_[0] != nullptr) neighbors_[0]->neighbors_changed_ = true;
+    transparent_face_[1] = is_transparent;
+  }
   // Top face
   is_transparent = false;
   for (int i = 4; i < 8; i++)
@@ -254,8 +255,11 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center)
       break;
     }
   }
-  if (transparent_face_[2] != is_transparent) transparency_changed_ = true;
-  transparent_face_[2] = is_transparent;
+  if (transparent_face_[2] != is_transparent)
+  {
+    if (neighbors_[3] != nullptr) neighbors_[3]->neighbors_changed_ = true;
+    transparent_face_[2] = is_transparent;
+  }
   // Bottom face
   is_transparent = false;
   for (int i = 0; i < 4; i++)
@@ -266,8 +270,11 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center)
       break;
     }
   }
-  if (transparent_face_[3] != is_transparent) transparency_changed_ = true;
-  transparent_face_[3] = is_transparent;
+  if (transparent_face_[3] != is_transparent)
+  {
+    if (neighbors_[2] != nullptr) neighbors_[2]->neighbors_changed_ = true;
+    transparent_face_[3] = is_transparent;
+  }
   // Back face
   is_transparent = false;
   for (int i = 2; i < 8; i+=(i%2)*2+1)
@@ -278,8 +285,11 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center)
       break;
     }
   }
-  if (transparent_face_[4] != is_transparent) transparency_changed_ = true;
-  transparent_face_[4] = is_transparent;
+  if (transparent_face_[4] != is_transparent)
+  {
+    if (neighbors_[5] != nullptr) neighbors_[5]->neighbors_changed_ = true;
+    transparent_face_[4] = is_transparent;
+  }
   // Front face
   is_transparent = false;
   for (int i = 0; i < 6; i+=(i%2)*2+1)
@@ -290,8 +300,11 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center)
       break;
     }
   }
-  if (transparent_face_[5] != is_transparent) transparency_changed_ = true;
-  transparent_face_[5] = is_transparent;
+  if (transparent_face_[5] != is_transparent)
+  {
+    if (neighbors_[4] != nullptr) neighbors_[4]->neighbors_changed_ = true;
+    transparent_face_[5] = is_transparent;
+  }
 }
 
 
@@ -373,7 +386,7 @@ void Octree::setNeighbors(Octree **neighbors)
   //std::copy(neighbors, neighbors+6, neighbors_);
   for (unsigned int i = 0; i < 6; i++)
   {
-    if (neighbors_[i] != neighbors[i]) neighbors_changed_ = true;
+    //if (neighbors_[i] != neighbors[i]) neighbors_changed_[i] = true;
     neighbors_[i] = neighbors[i];
   }
 }
@@ -386,18 +399,11 @@ void Octree::getCubes()
     if (cube_pointer_ != nullptr)
     {
       // Take into account that some existing cube pointers may have updated neighbors, so redraw them
-      bool reset_cube_pointer = false;
-      for (unsigned int i = 0; i < 6; i++)
-      {
-        if (neighbors_[i] != nullptr && neighbors_[i]->transparency_changed_)
-        {
-          reset_cube_pointer = true;
-        }
-      }
-      if (reset_cube_pointer)
+      if (neighbors_changed_)
       {
         cube_pointer_.reset();
         cube_pointer_ = nullptr;
+        neighbors_changed_ = false;
       }
     }
 
@@ -405,7 +411,7 @@ void Octree::getCubes()
     bool render_cube = false;
     for (unsigned int i = 0; i < 6; i++)
     {
-      if (!neighbors_[i] || neighbors_[i]->faceIsTransparent(i))
+      if (neighbors_[i] == nullptr || neighbors_[i]->faceIsTransparent(i))
       {
         render_face[i] = true;
         render_cube = true;
@@ -415,6 +421,7 @@ void Octree::getCubes()
     if (!render_cube) // No faces are visible, so don't draw this cube
     {
       cube_pointer_.reset();
+      cube_pointer_ = nullptr;
       return;
     }
 
@@ -427,28 +434,17 @@ void Octree::getCubes()
       center.setZ(floor(center_.getZ()));
       if (!(layer_ == 0)) center = center - Anthrax::vec3<float>(0.5, 0.5, 0.5);
 
-      //cube_vector->push_back(cube_converter_.convert(voxel_set_.getVoxelType(), center, 1 << layer_));
-       
-      //cube_vector->push_back(Anthrax::Cube(Anthrax::vec4<float>(0.5, 0.1, 0.8, 1.0), center, 1 << (layer_)));
       cube_pointer_.reset(new Anthrax::Cube());
       *cube_pointer_ = cube_converter_.convert(voxel_set_.getVoxelType(), center, 1 << layer_);
       cube_pointer_->setFaces(render_face);
       anthrax_instance_->addVoxel(cube_pointer_);
-      //cube_vector->push_back(cube);
     }
   }
   else
   {
-    /*
-    if (cube_pointer_)
-    {
-      delete(cube_pointer_);
-      std::cout << "POAI" << std::endl;
-    }
-    */
     for (unsigned int i = 0; i < 8; i++)
     {
-      if (children_[i])
+      if (children_[i] != nullptr)
       {
         children_[i]->getCubes();
       }
