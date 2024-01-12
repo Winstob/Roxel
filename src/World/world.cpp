@@ -22,7 +22,7 @@ World::World(std::string directory, Anthrax::Anthrax *anthrax_instance)
   anthrax_instance_ = anthrax_instance;
   octree_.setAnthraxPointer(anthrax_instance_);
   octree_.setLoadDecisionFunction([](uint64_t distance, int layer) {
-      return (distance < 5000 && layer > distance / 100);
+      return (distance < 5000 && layer > distance / 50);
       });
 }
 

@@ -82,6 +82,7 @@ void Octree::setLoadDecisionFunction(bool (*load_decision_function)(uint64_t, in
 
 void Octree::loadArea(Anthrax::vec3<int64_t> load_center)
 {
+  transparency_changed_ = false;
   if (is_uniform_) 
   {
     is_leaf_ = true;
@@ -229,6 +230,7 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center)
       break;
     }
   }
+  if (transparent_face_[0] != is_transparent) transparency_changed_ = true;
   transparent_face_[0] = is_transparent;
   // Left face
   is_transparent = false;
@@ -240,6 +242,7 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center)
       break;
     }
   }
+  if (transparent_face_[1] != is_transparent) transparency_changed_ = true;
   transparent_face_[1] = is_transparent;
   // Top face
   is_transparent = false;
@@ -251,6 +254,7 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center)
       break;
     }
   }
+  if (transparent_face_[2] != is_transparent) transparency_changed_ = true;
   transparent_face_[2] = is_transparent;
   // Bottom face
   is_transparent = false;
@@ -262,6 +266,7 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center)
       break;
     }
   }
+  if (transparent_face_[3] != is_transparent) transparency_changed_ = true;
   transparent_face_[3] = is_transparent;
   // Back face
   is_transparent = false;
@@ -273,6 +278,7 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center)
       break;
     }
   }
+  if (transparent_face_[4] != is_transparent) transparency_changed_ = true;
   transparent_face_[4] = is_transparent;
   // Front face
   is_transparent = false;
@@ -284,6 +290,7 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center)
       break;
     }
   }
+  if (transparent_face_[5] != is_transparent) transparency_changed_ = true;
   transparent_face_[5] = is_transparent;
 }
 
@@ -293,13 +300,14 @@ void Octree::getNewNeighbors()
   //if (is_leaf_ || is_uniform_) return;
   for (unsigned int i = 0; i < 8; i++)
   {
-    if (children_[i] == NULL)
+    if (children_[i] == nullptr)
     {
       continue;
     }
     Octree *neighbor;
     int neighbor_child = 0;
     Octree *child_neighbors[6];
+
     if (i%2 == 0)
     {
       // Left side
@@ -365,6 +373,7 @@ void Octree::setNeighbors(Octree **neighbors)
   //std::copy(neighbors, neighbors+6, neighbors_);
   for (unsigned int i = 0; i < 6; i++)
   {
+    if (neighbors_[i] != neighbors[i]) neighbors_changed_ = true;
     neighbors_[i] = neighbors[i];
   }
 }
@@ -372,14 +381,26 @@ void Octree::setNeighbors(Octree **neighbors)
 
 void Octree::getCubes()
 {
-  if (cube_pointer_)
-  {
-    // Take into account that some existing cube pointers may have updated neighbors, so redraw them
-    cube_pointer_.reset();
-    cube_pointer_ = nullptr;
-  }
   if (is_leaf_)
   {
+    if (cube_pointer_ != nullptr)
+    {
+      // Take into account that some existing cube pointers may have updated neighbors, so redraw them
+      bool reset_cube_pointer = false;
+      for (unsigned int i = 0; i < 6; i++)
+      {
+        if (neighbors_[i] != nullptr && neighbors_[i]->transparency_changed_)
+        {
+          reset_cube_pointer = true;
+        }
+      }
+      if (reset_cube_pointer)
+      {
+        cube_pointer_.reset();
+        cube_pointer_ = nullptr;
+      }
+    }
+
     bool render_face[6] = {false};
     bool render_cube = false;
     for (unsigned int i = 0; i < 6; i++)
