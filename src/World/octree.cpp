@@ -84,6 +84,7 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center)
 {
   if (is_uniform_) 
   {
+    is_leaf_ = true;
     if (voxel_set_.getVoxelType() != 0)
     {
       for (unsigned int i = 0; i < 6; i++)
@@ -96,84 +97,75 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center)
 
   bool was_leaf = is_leaf_;
   is_leaf_ = true;
-
-  int64_t closest_x, closest_y, closest_z;
-
-  // Might as well find the new centers now since we'll need them later
   Anthrax::vec3<int64_t> quadrant_centers[8];
 
-  // Iterate through all 8 quadrants to find which ones need to be loaded
-  bool load_quadrant[8] = {false};
-  int64_t quadrant_width = (1LL << (layer_-1)); // 2^(layer_-1)
-  //std::cout << (quadrant_width) << std::endl;
-  for (unsigned int i = 0; i < 8; i++)
+  float distance = (center_ - load_center).getMagnitude() - ((1LL << layer_) * 0.866025403784);
+  if (distance < 0) distance = 0;
+  if (loadDecisionFunction(distance, layer_))
   {
-    /*
-    if (children_[i])
-    {
-      load_quadrant[i] = true;
-      is_leaf_ = false;
-      continue;
-    }
-    */
-    // Approximate the distance of the closest point to the center of the desired loading area
-    if (i%2 == 0)
-    {
-      if (layer_ == 1)
-        quadrant_centers[i].setX(center_.getX() - (quadrant_width >> 1) - 1);
-      else
-        quadrant_centers[i].setX(center_.getX() - (quadrant_width >> 1));
-    }
-    else
-    {
-      quadrant_centers[i].setX(center_.getX() + (quadrant_width >> 1));
-    }
+    is_leaf_ = false;
 
-    if (i < 4)
+    // Iterate through all 8 quadrants to find the centers of each
+    int64_t quadrant_width = (1LL << (layer_-1)); // 2^(layer_-1)
+    //std::cout << (quadrant_width) << std::endl;
+    for (unsigned int i = 0; i < 8; i++)
     {
-      if (layer_ == 1)
-        quadrant_centers[i].setY(center_.getY() - (quadrant_width >> 1) - 1);
+      /*
+      if (children_[i])
+      {
+        load_quadrant[i] = true;
+        is_leaf_ = false;
+        continue;
+      }
+      */
+      // Approximate the distance of the closest point to the center of the desired loading area
+      if (i%2 == 0)
+      {
+        if (layer_ == 1)
+          quadrant_centers[i].setX(center_.getX() - (quadrant_width >> 1) - 1);
+        else
+          quadrant_centers[i].setX(center_.getX() - (quadrant_width >> 1));
+      }
       else
-        quadrant_centers[i].setY(center_.getY() - (quadrant_width >> 1));
-    }
-    else
-    {
-      quadrant_centers[i].setY(center_.getY() + (quadrant_width >> 1));
-    }
- 
-    if (i == 0 || i == 1 || i == 4 || i == 5)
-    {
-      if (layer_ == 1)
-        quadrant_centers[i].setZ(center_.getZ() - (quadrant_width >> 1) - 1);
+      {
+        quadrant_centers[i].setX(center_.getX() + (quadrant_width >> 1));
+      }
+
+      if (i < 4)
+      {
+        if (layer_ == 1)
+          quadrant_centers[i].setY(center_.getY() - (quadrant_width >> 1) - 1);
+        else
+          quadrant_centers[i].setY(center_.getY() - (quadrant_width >> 1));
+      }
       else
-        quadrant_centers[i].setZ(center_.getZ() - (quadrant_width >> 1));
-    }
-    else
-    {
-      quadrant_centers[i].setZ(center_.getZ() + (quadrant_width >> 1));
-    }
-    float distance = (quadrant_centers[i] - load_center).getMagnitude() - (quadrant_width * 0.866025403784);
-    if (distance < 0) distance = 0;
-    load_quadrant[i] = loadDecisionFunction(distance, layer_-1);
-    if (is_leaf_ && load_quadrant[i])
-    {
-      is_leaf_ = false;
+      {
+        quadrant_centers[i].setY(center_.getY() + (quadrant_width >> 1));
+      }
+   
+      if (i == 0 || i == 1 || i == 4 || i == 5)
+      {
+        if (layer_ == 1)
+          quadrant_centers[i].setZ(center_.getZ() - (quadrant_width >> 1) - 1);
+        else
+          quadrant_centers[i].setZ(center_.getZ() - (quadrant_width >> 1));
+      }
+      else
+      {
+        quadrant_centers[i].setZ(center_.getZ() + (quadrant_width >> 1));
+      }
     }
   }
 
-  if (was_leaf && is_leaf_)
+  if (is_leaf_)
   {
-    return;
-  }
-  else if (!was_leaf && is_leaf_)
-  {
-    // The current layer was not a leaf before (has children) but now it is
-    // delete children
     for (unsigned int i = 0; i < 8; i++)
     {
       if (children_[i] != nullptr)
       {
-        delete(children_[i]);
+        // The current layer was not a leaf before (has children) but now it is
+        // delete children
+        delete children_[i];
         children_[i] = nullptr;
       }
     }
@@ -196,32 +188,33 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center)
     }
   }
 
-  if (layer_ <= file_layer_)
+  if (!is_leaf_)
   {
-    for (unsigned int i = 0; i < 8; i++)
+    if (layer_ <= file_layer_)
     {
-      if (load_quadrant[i] && children_[i] == nullptr)
+      for (unsigned int i = 0; i < 8; i++)
       {
-        children_[i] = new Octree(layer_ - 1, file_layer_, path_ + std::to_string(i), quadrant_centers[i], voxel_set_.getQuadrant(i));
+        if (children_[i] == nullptr)
+        {
+          children_[i] = new Octree(layer_ - 1, file_layer_, path_ + std::to_string(i), quadrant_centers[i], voxel_set_.getQuadrant(i));
+        }
       }
     }
-  }
-  else
-  {
-    for (unsigned int i = 0; i < 8; i++)
+    else
     {
-      if (load_quadrant[i] && children_[i] == nullptr)
+      for (unsigned int i = 0; i < 8; i++)
       {
-        children_[i] = new Octree(layer_ - 1, file_layer_, path_ + std::to_string(i), quadrant_centers[i]);
+        if (children_[i] == nullptr)
+        {
+          children_[i] = new Octree(layer_ - 1, file_layer_, path_ + std::to_string(i), quadrant_centers[i]);
+        }
       }
     }
-  }
 
-  for (unsigned int i = 0; i < 8; i++)
-  {
-    if (load_quadrant[i])
+    for (unsigned int i = 0; i < 8; i++)
     {
-      children_[i]->loadArea(load_center);
+      if (children_[i] != nullptr)
+        children_[i]->loadArea(load_center);
     }
   }
 
@@ -379,12 +372,12 @@ void Octree::setNeighbors(Octree **neighbors)
 
 void Octree::getCubes()
 {
-  /*
   if (cube_pointer_)
   {
-    delete(cube_pointer_);
+    // Take into account that some existing cube pointers may have updated neighbors, so redraw them
+    cube_pointer_.reset();
+    cube_pointer_ = nullptr;
   }
-  */
   if (is_leaf_)
   {
     bool render_face[6] = {false};
