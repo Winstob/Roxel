@@ -62,13 +62,18 @@ public:
 
 private:
   void renderScene();
+  void resizeWindow();
 
   RenderType render_type_;
 
   std::vector<Cube> voxel_buffer_;
 
   static GLFWwindow* window;
-  Shader* cube_shader = NULL;
+
+  unsigned int framebuffer_, texture_color_buffer_, renderbuffer_object_;
+  unsigned int quad_vao_, quad_vbo_;
+  Shader* cube_shader_ = nullptr;
+  Shader* screen_shader_ = nullptr;
 
   VoxelCacheManager* voxel_cache_manager_;
 
@@ -87,6 +92,15 @@ private:
   static float lastFrame;
 
   static bool wireframe_mode_;
+  static bool window_size_changed_;
+
+  float quad_vertices_[16] = {
+    // positions  // texture coordinates
+    -1.0, -1.0,   0.0, 0.0,
+    1.0, -1.0,    1.0, 0.0,
+    -1.0, 1.0,    0.0, 1.0,
+    1.0, 1.0,     1.0, 1.0
+  };
 };
 
 } // namespace Anthrax

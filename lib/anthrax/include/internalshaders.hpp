@@ -332,3 +332,32 @@ void main()
   if (render_back[0] == 1.0) drawBackFace(vec4(0.0, 0.0, 0.0, 1.0));
 }
 )glsl";
+
+
+const std::string screen_vertex_shader = R"glsl(
+#version 330 core
+layout (location = 0) in vec2 position;
+layout (location = 1) in vec2 texture_coordinates;
+
+out vec2 TexCoords;
+
+void main()
+{
+  gl_Position = vec4(position.x, position.y, 0.0, 1.0); 
+  TexCoords = texture_coordinates;
+}
+)glsl";
+
+
+const std::string screen_fragment_shader = R"glsl(
+#version 330 core
+  
+in vec2 TexCoords;
+
+uniform sampler2D screenTexture;
+
+void main()
+{ 
+  gl_FragColor = texture(screenTexture, TexCoords);
+}
+)glsl";

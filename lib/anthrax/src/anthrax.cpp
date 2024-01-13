@@ -21,6 +21,7 @@ float Anthrax::mouse_y_;
 float Anthrax::deltaTime;
 float Anthrax::lastFrame;
 bool Anthrax::wireframe_mode_;
+bool Anthrax::window_size_changed_;
 
 
 Anthrax::Anthrax()
@@ -79,11 +80,45 @@ int Anthrax::startWindow()
 
   // configure global opengl state
   // -----------------------------
-  glEnable(GL_DEPTH_TEST);
+  // Disable for default framebuffer
+  //glEnable(GL_DEPTH_TEST);
 
-  // build and compile our shader zprogram
-  // ------------------------------------
-  cube_shader = new Shader(Shader::ShaderInputType::CODESTRING, cube_vertex_shader.c_str(), cube_fragment_shader.c_str(), cube_geometry_shader.c_str());
+  // build and compile our shader programs
+  // -------------------------------------
+  cube_shader_ = new Shader(Shader::ShaderInputType::CODESTRING, cube_vertex_shader.c_str(), cube_fragment_shader.c_str(), cube_geometry_shader.c_str());
+  screen_shader_ = new Shader(Shader::ShaderInputType::CODESTRING, screen_vertex_shader.c_str(), screen_fragment_shader.c_str());
+
+  // Set up screen quad
+  glGenVertexArrays(1, &quad_vao_);
+  glGenBuffers(1, &quad_vbo_);
+  glBindVertexArray(quad_vao_);
+  glBindBuffer(GL_ARRAY_BUFFER, quad_vbo_);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(quad_vertices_), &quad_vertices_, GL_STATIC_DRAW);
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2*sizeof(float)));
+  glEnableVertexAttribArray(1);
+
+  // framebuffer configuration
+  // -------------------------
+  glGenFramebuffers(1, &framebuffer_);
+  glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_);
+  // create a color attachment texture
+  glGenTextures(1, &texture_color_buffer_);
+  glBindTexture(GL_TEXTURE_2D, texture_color_buffer_);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, window_width_, window_height_, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_color_buffer_, 0);
+  // create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
+  glGenRenderbuffers(1, &renderbuffer_object_);
+  glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer_object_);
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, window_width_, window_height_); // use a single renderbuffer object for both a depth AND stencil buffer.
+  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderbuffer_object_); // now actually attach it
+  // now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
+  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+      std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
   // Initialize the voxel cache
   voxel_cache_manager_ = new VoxelCacheManager();
@@ -113,18 +148,37 @@ int Anthrax::renderFrame()
   // -----
   processInput(window);
 
-  // render
-  // ------
-  //glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
+  if (window_size_changed_)
+  {
+    resizeWindow();
+  }
+  if (wireframe_mode_)
+  {
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  }
 
   // Update the voxel cache
   // Temporary: give player position to cache manager
   voxel_cache_manager_->view_position_ = camera.position_;
   voxel_cache_manager_->updateCache();
 
-  // Draw the scene
+  // render
+  glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_);
+  glEnable(GL_DEPTH_TEST);
+  //glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
+
+  // Render the scene to the framebuffer
   renderScene();
+
+  // Go back the default framebuffer and draw the scene to the screen
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+  glDisable(GL_DEPTH_TEST);
+  screen_shader_->use();
+  glBindVertexArray(quad_vao_);
+  glBindTexture(GL_TEXTURE_2D, texture_color_buffer_);
+  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
   // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
   // -------------------------------------------------------------------------------
@@ -133,7 +187,13 @@ int Anthrax::renderFrame()
 
   if (glfwWindowShouldClose(window))
   {
-    delete cube_shader;
+    delete cube_shader_;
+    delete screen_shader_;
+
+    glDeleteVertexArrays(1, &quad_vao_);
+    glDeleteBuffers(1, &quad_vbo_);
+    glDeleteRenderbuffers(1, &renderbuffer_object_);
+    glDeleteFramebuffers(1, &framebuffer_);
 
     delete voxel_cache_manager_;
     // glfw: terminate, clearing all previously allocated GLFW resources.
@@ -147,24 +207,24 @@ int Anthrax::renderFrame()
 void Anthrax::renderScene()
 {
   // Set up shader
-  cube_shader->use();
+  cube_shader_->use();
 
   // Camera/view settings
   // Set camera position
-  cube_shader->setVec3("view_position", camera.position_);
+  cube_shader_->setVec3("view_position", camera.position_);
   // Camera/view transformation
   glm::mat4 view = camera.GetViewMatrix();
-  cube_shader->setMat4("view", view);
+  cube_shader_->setMat4("view", view);
   // Pass projection matrix to shader (note that in this case it could change every frame)
   glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)window_width_ / (float)window_height_, 0.1f, (float)render_distance_);
-  cube_shader->setMat4("projection", projection);
+  cube_shader_->setMat4("projection", projection);
 
   // Set sunlight settings
   //cube_shader->setVec3("sunlight.direction", glm::vec3(-1.0f, -0.5f, 0.0f));
-  cube_shader->setVec3("sunlight.direction", glm::vec3(glm::cos(glfwGetTime()/16), glm::sin(glfwGetTime()/16), 0.0f));
-  cube_shader->setVec3("sunlight.ambient", glm::vec3(0.5, 0.5, 0.7));
-  cube_shader->setVec3("sunlight.diffuse", glm::vec3(0.4, 0.4, 0.2));
-  cube_shader->setVec3("sunlight.specular", glm::vec3(0.3));
+  cube_shader_->setVec3("sunlight.direction", glm::vec3(glm::cos(glfwGetTime()/16), glm::sin(glfwGetTime()/16), 0.0f));
+  cube_shader_->setVec3("sunlight.ambient", glm::vec3(0.5, 0.5, 0.7));
+  cube_shader_->setVec3("sunlight.diffuse", glm::vec3(0.4, 0.4, 0.2));
+  cube_shader_->setVec3("sunlight.specular", glm::vec3(0.3));
 
   if (voxel_buffer_.size() > 0)
   {
@@ -180,15 +240,32 @@ void Anthrax::key_callback(GLFWwindow *window, int key, int scancode, int action
   {
     if (wireframe_mode_)
     {
-      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+      //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
       wireframe_mode_ = false;
     }
     else
     {
-      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+      //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
       wireframe_mode_ = true;
     }
   }
+}
+
+
+void Anthrax::resizeWindow()
+{
+  glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_);
+  glBindTexture(GL_TEXTURE_2D, texture_color_buffer_);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, window_width_, window_height_, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_color_buffer_, 0);
+  glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer_object_);
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, window_width_, window_height_); // use a single renderbuffer object for both a depth AND stencil buffer.
+  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderbuffer_object_); // now actually attach it
+
+  window_size_changed_ = false;
+  return;
 }
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
@@ -210,6 +287,7 @@ void Anthrax::framebuffer_size_callback(GLFWwindow* window, int width, int heigh
   window_height_ = height;
   mouse_x_ = window_width_ / 2.0f;
   mouse_y_ = window_height_ / 2.0f;
+  window_size_changed_ = true;
 }
 
 
