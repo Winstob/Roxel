@@ -62,6 +62,8 @@ public:
 
 private:
   void renderScene();
+  void gBufferSetup();
+  void renderQuad();
   void resizeWindow();
 
   RenderType render_type_;
@@ -71,7 +73,10 @@ private:
   static GLFWwindow* window;
 
   unsigned int framebuffer_, texture_color_buffer_, renderbuffer_object_;
-  unsigned int quad_vao_, quad_vbo_;
+  unsigned int g_buffer_, g_position_texture_, g_normal_texture_, g_color_texture_, g_material_texture_, g_depth_rbo_ = 0;
+  unsigned int quad_vao_, quad_vbo_ = 0;
+  Shader* lighting_pass_shader_ = nullptr;
+  Shader* geometry_pass_shader_ = nullptr;
   Shader* cube_shader_ = nullptr;
   Shader* screen_shader_ = nullptr;
 
@@ -94,13 +99,6 @@ private:
   static bool wireframe_mode_;
   static bool window_size_changed_;
 
-  float quad_vertices_[16] = {
-    // positions  // texture coordinates
-    -1.0, -1.0,   0.0, 0.0,
-    1.0, -1.0,    1.0, 0.0,
-    -1.0, 1.0,    0.0, 1.0,
-    1.0, 1.0,     1.0, 1.0
-  };
 };
 
 } // namespace Anthrax
