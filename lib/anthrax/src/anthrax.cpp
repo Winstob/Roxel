@@ -90,6 +90,7 @@ int Anthrax::startWindow()
   ssao_pass_shader_->use();
   ssao_pass_shader_->setInt("g_position_texture_", 0);
   ssao_pass_shader_->setInt("g_normal_texture_", 1);
+  ssao_pass_shader_->setInt("ssao_noise_texture_", 2);
   lighting_pass_shader_->use();
   lighting_pass_shader_->setInt("g_position_texture_", 0);
   lighting_pass_shader_->setInt("g_normal_texture_", 1);
@@ -373,6 +374,10 @@ void Anthrax::ssaoFramebufferSetup()
   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
       std::cout << "Framebuffer not complete!" << std::endl;
 
+  ssao_pass_shader_->use();
+  ssao_pass_shader_->setFloat("window_width_", window_width_);
+  ssao_pass_shader_->setFloat("window_height_", window_height_);
+
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   return;
 }
@@ -398,6 +403,22 @@ void Anthrax::ssaoKernelSetup()
     sample *= scale;
     ssao_pass_shader_->setVec3("samples[" + std::to_string(i) + "]", sample);
   }
+
+
+  std::vector<glm::vec3> ssaoNoise;
+  for (unsigned int i = 0; i < 16; i++)
+  {
+    glm::vec3 noise(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, 0.0f); // rotate around z-axis (in tangent space)
+    ssaoNoise.push_back(noise);
+  }
+
+  glGenTextures(1, &ssao_noise_texture_);
+  glBindTexture(GL_TEXTURE_2D, ssao_noise_texture_);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 4, 4, 0, GL_RGB, GL_FLOAT, &ssaoNoise[0]);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
   return;
 }
