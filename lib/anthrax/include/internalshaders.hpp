@@ -285,6 +285,77 @@ void main()
 )glsl";
 
 
+const std::string ssao_pass_vshader = R"glsl(
+#version 330 core
+layout (location = 0) in vec2 position;
+layout (location = 1) in vec2 texture_coordinates;
+
+out vec2 tex_coords;
+
+void main()
+{
+  tex_coords = texture_coordinates;
+  gl_Position = vec4(position, 0.0, 1.0);
+}
+)glsl";
+
+
+const std::string ssao_pass_fshader = R"glsl(
+#version 330 core
+layout (location = 0) out float occlusion_factor;
+
+uniform sampler2D g_position_texture_;
+uniform sampler2D g_normal_texture_;
+
+uniform vec3 samples[64];
+
+uniform mat4 view;
+uniform mat4 projection;
+
+in vec2 tex_coords;
+
+const float radius = 2.5;
+const float bias = 0.025;
+
+void main()
+{
+  vec3 frag_world_pos = texture(g_position_texture_, tex_coords).rgb;
+  vec3 frag_view_pos = (view * vec4(frag_world_pos, 1.0)).xyz;
+  vec3 frag_normal = texture(g_normal_texture_, tex_coords).rgb;
+
+  float occlusion = 0.0;
+  for (int i = 0; i < 64; i++)
+  {
+    //mat3 normal_transform_matrix = mat3(1.0);
+    /*
+    mat3 normal_transform_matrix = mat3(
+        frag_normal.y + abs(frag_normal.z), frag_normal.x, 0,
+        -frag_normal.x, frag_normal.y, -frag_normal.z,
+        0, frag_normal.z, frag_normal.y + abs(frag_normal.x)
+    );
+    */
+    mat3 normal_transform_matrix = mat3(
+        frag_normal.y + abs(frag_normal.z), -frag_normal.x, 0,
+        frag_normal.x, frag_normal.y, frag_normal.z,
+        0, -frag_normal.z, frag_normal.y + abs(frag_normal.x)
+    );
+    vec3 sample_world_pos = frag_world_pos + normal_transform_matrix * samples[i] * radius;
+    vec3 sample_view_pos = (view * vec4(sample_world_pos, 1.0)).xyz;
+    vec4 tmp = projection * vec4(sample_view_pos, 1.0);
+    vec3 sample_screen_pos = tmp.xyz / tmp.w * 0.5 + 0.5;
+
+    tmp = (projection * view * vec4(texture(g_position_texture_, sample_screen_pos.xy).rgb, 1.0));
+    float sample_depth_comparison = tmp.z / tmp.w;
+    //float sample_depth_comparison = (view * vec4(texture(g_position_texture_, sample_screen_pos.xy).rgb, 1.0)).z; // sus
+
+    occlusion += (sample_depth_comparison >= sample_screen_pos.z + bias ? 1.0 : 0.0);
+  }
+
+  occlusion_factor = 1.0 - (occlusion / 64.0);
+}
+)glsl";
+
+
 const std::string lighting_pass_vshader = R"glsl(
 #version 330 core
 layout (location = 0) in vec2 position;
@@ -320,6 +391,7 @@ uniform sampler2D g_position_texture_;
 uniform sampler2D g_normal_texture_;
 uniform sampler2D g_color_texture_;
 uniform sampler2D g_material_texture_;
+uniform sampler2D ssao_texture_;
 
 void main()
 {             
@@ -330,6 +402,7 @@ void main()
   float voxel_reflectivity = texture(g_material_texture_, TexCoords).r;
   float voxel_shininess = texture(g_material_texture_, TexCoords).g;
   float voxel_opacity = texture(g_material_texture_, TexCoords).b;
+  float ambient_occlusion = texture(ssao_texture_, TexCoords).r;
   
   // Calculate sunlight phong vector
   // Calculate ambient light
@@ -349,7 +422,9 @@ void main()
   // Calculate Phong model lighting
   vec3 phong = sunlight_ambient + sunlight_diffuse + sunlight_specular;
 
-  gl_FragColor = vec4(phong, voxel_opacity);
+  //gl_FragColor = vec4(phong, voxel_opacity);
+  gl_FragColor = vec4(0.0);
+  if (voxel_opacity != 0.0) gl_FragColor = vec4(vec3(ambient_occlusion), 1.0);
 }
 )glsl";
 
