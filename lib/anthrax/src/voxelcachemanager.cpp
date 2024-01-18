@@ -205,6 +205,7 @@ void VoxelCacheManager::updateCache()
           */
 
           glm::vec3 position = current_cube->getPosition();
+          position.z = -position.z;
           GLint size = current_cube->getSize();
 
           GLuint render_faces = 0u;

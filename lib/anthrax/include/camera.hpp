@@ -36,13 +36,13 @@ public:
   // constructor with vectors
   Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::quat rotation = glm::quat(0.0f, 0.0, 0.0f, 0.0f)) : Zoom(ZOOM)
   {
-    position_ = position;
+    position_ = -position;
     rotation_ = rotation;
   }
   // constructor with scalar values
   Camera(float posX, float posY, float posZ, float rotW, float rotX, float rotY, float rotZ) : Zoom(ZOOM)
   {
-    position_ = glm::vec3(posX, posY, posZ);
+    position_ = glm::vec3(posX, posY, -posZ);
     rotation_ = glm::quat(rotW, rotX, rotY, rotZ);
   }
 
@@ -50,13 +50,15 @@ public:
   glm::mat4 GetViewMatrix()
   {
     glm::vec3 forward = rotation_ * glm::vec3(0.0f, 0.0f, 1.0f);
+    forward.z = -forward.z;
     glm::vec3 up = rotation_ * glm::vec3(0.0f, 1.0f, 0.0f);
+    up.z = -up.z;
     return glm::lookAt(position_, position_ + forward, up);
   }
 
   glm::vec3 getLookDirection()
   {
-    return rotation_ * glm::vec3(0.0f, 0.0f, 1.0f);
+    return rotation_ * glm::vec3(0.0f, 0.0f, -1.0f);
   }
 
   // processes input received from a mouse scroll-wheel event. Only requires input on the vertical wheel-axis
@@ -71,6 +73,7 @@ public:
   void setPosition(glm::vec3 position)
   {
     position_ = position;
+    position_.z = -position_.z;
   }
 
   void setRotation(glm::quat rotation)

@@ -1,0 +1,1 @@
+Anthrax uses a left-handed coordinate system, but OpenGL uses a right-handed coordinate system. When sending any coordinate data to shaders, the z-axis must be flipped.

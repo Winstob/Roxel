@@ -5,6 +5,9 @@
 \* ---------------------------------------------------------------- */
 
 
+// NOTE: within all shaders, a left-handed coordinate system is used.
+
+
 #include <string>
 
 const std::string geometry_pass_vshader = R"glsl(
@@ -156,110 +159,110 @@ flat out float voxel_opacity;
 uniform mat4 view;
 uniform mat4 projection;
 
-void drawFrontFace(vec4 position)
-{
-  normal = vec3(0.0, 0.0, -1.0);
-  fragment_position = vec3(model[0] * (position + vec4(-0.5, -0.5, -0.5, 0.0)));
-  gl_Position = projection * view * model[0] * (position + vec4(-0.5, -0.5, -0.5, 0.0)) * vec4(-1.0, 1.0, 1.0, 1.0);
-  EmitVertex();
-  fragment_position = vec3(model[0] * (position + vec4(0.5, -0.5, -0.5, 0.0)));
-  gl_Position = projection * view * model[0] * (position + vec4(0.5, -0.5, -0.5, 0.0)) * vec4(-1.0, 1.0, 1.0, 1.0);
-  EmitVertex();
-  fragment_position = vec3(model[0] * (position + vec4(-0.5, 0.5, -0.5, 0.0)));
-  gl_Position = projection * view * model[0] * (position + vec4(-0.5, 0.5, -0.5, 0.0)) * vec4(-1.0, 1.0, 1.0, 1.0);
-  EmitVertex();
-  fragment_position = vec3(model[0] * (position + vec4(0.5, 0.5, -0.5, 0.0)));
-  gl_Position = projection * view * model[0] * (position + vec4(0.5, 0.5, -0.5, 0.0)) * vec4(-1.0, 1.0, 1.0, 1.0);
-  EmitVertex();
-  EndPrimitive();
-}
-
-void drawBackFace(vec4 position)
+void drawFrontFace()
 {
   normal = vec3(0.0, 0.0, 1.0);
-  fragment_position = vec3(model[0] * (position + vec4(0.5, 0.5, 0.5, 0.0)));
-  gl_Position = projection * view * model[0] * (position + vec4(0.5, 0.5, 0.5, 0.0)) * vec4(-1.0, 1.0, 1.0, 1.0);
+  fragment_position = (model[0] * vec4(-0.5, -0.5, 0.5, 1.0)).xyz;
+  gl_Position = projection * view * model[0] * (vec4(-0.5, -0.5, 0.5, 1.0));
   EmitVertex();
-  fragment_position = vec3(model[0] * (position + vec4(0.5, -0.5, 0.5, 0.0)));
-  gl_Position = projection * view * model[0] * (position + vec4(0.5, -0.5, 0.5, 0.0)) * vec4(-1.0, 1.0, 1.0, 1.0);
+  fragment_position = (model[0] * vec4(0.5, -0.5, 0.5, 1.0)).xyz;
+  gl_Position = projection * view * model[0] * vec4(0.5, -0.5, 0.5, 1.0);
   EmitVertex();
-  fragment_position = vec3(model[0] * (position + vec4(-0.5, 0.5, 0.5, 0.0)));
-  gl_Position = projection * view * model[0] * (position + vec4(-0.5, 0.5, 0.5, 0.0)) * vec4(-1.0, 1.0, 1.0, 1.0);
+  fragment_position = (model[0] * vec4(-0.5, 0.5, 0.5, 1.0)).xyz;
+  gl_Position = projection * view * model[0] * vec4(-0.5, 0.5, 0.5, 1.0);
   EmitVertex();
-  fragment_position = vec3(model[0] * (position + vec4(-0.5, -0.5, 0.5, 0.0)));
-  gl_Position = projection * view * model[0] * (position + vec4(-0.5, -0.5, 0.5, 0.0)) * vec4(-1.0, 1.0, 1.0, 1.0);
+  fragment_position = (model[0] * vec4(0.5, 0.5, 0.5, 1.0)).xyz;
+  gl_Position = projection * view * model[0] * vec4(0.5, 0.5, 0.5, 1.0);
   EmitVertex();
   EndPrimitive();
 }
 
-void drawLeftFace(vec4 position)
+void drawBackFace()
+{
+  normal = vec3(0.0, 0.0, -1.0);
+  fragment_position = (model[0] * vec4(0.5, 0.5, -0.5, 1.0)).xyz;
+  gl_Position = projection * view * model[0] * (vec4(0.5, 0.5, -0.5, 1.0));
+  EmitVertex();
+  fragment_position = (model[0] * vec4(0.5, -0.5, -0.5, 1.0)).xyz;
+  gl_Position = projection * view * model[0] * vec4(0.5, -0.5, -0.5, 1.0);
+  EmitVertex();
+  fragment_position = (model[0] * vec4(-0.5, 0.5, -0.5, 1.0)).xyz;
+  gl_Position = projection * view * model[0] * vec4(-0.5, 0.5, -0.5, 1.0);
+  EmitVertex();
+  fragment_position = (model[0] * vec4(-0.5, -0.5, -0.5, 1.0)).xyz;
+  gl_Position = projection * view * model[0] * vec4(-0.5, -0.5, -0.5, 1.0);
+  EmitVertex();
+  EndPrimitive();
+}
+
+void drawLeftFace()
 {
   normal = vec3(-1.0, 0.0, 0.0);
-  fragment_position = vec3(model[0] * (position + vec4(-0.5, -0.5, -0.5, 0.0)));
-  gl_Position = projection * view * model[0] * (position + vec4(-0.5, -0.5, -0.5, 0.0)) * vec4(-1.0, 1.0, 1.0, 1.0);
+  fragment_position = (model[0] * vec4(-0.5, -0.5, 0.5, 1.0)).xyz;
+  gl_Position = projection * view * model[0] * (vec4(-0.5, -0.5, 0.5, 1.0));
   EmitVertex();
-  fragment_position = vec3(model[0] * (position + vec4(-0.5, 0.5, -0.5, 0.0)));
-  gl_Position = projection * view * model[0] * (position + vec4(-0.5, 0.5, -0.5, 0.0)) * vec4(-1.0, 1.0, 1.0, 1.0);
+  fragment_position = (model[0] * vec4(-0.5, 0.5, 0.5, 1.0)).xyz;
+  gl_Position = projection * view * model[0] * vec4(-0.5, 0.5, 0.5, 1.0);
   EmitVertex();
-  fragment_position = vec3(model[0] * (position + vec4(-0.5, -0.5, 0.5, 0.0)));
-  gl_Position = projection * view * model[0] * (position + vec4(-0.5, -0.5, 0.5, 0.0)) * vec4(-1.0, 1.0, 1.0, 1.0);
+  fragment_position = (model[0] * vec4(-0.5, -0.5, -0.5, 1.0)).xyz;
+  gl_Position = projection * view * model[0] * vec4(-0.5, -0.5, -0.5, 1.0);
   EmitVertex();
-  fragment_position = vec3(model[0] * (position + vec4(-0.5, 0.5, 0.5, 0.0)));
-  gl_Position = projection * view * model[0] * (position + vec4(-0.5, 0.5, 0.5, 0.0)) * vec4(-1.0, 1.0, 1.0, 1.0);
+  fragment_position = (model[0] * vec4(-0.5, 0.5, -0.5, 1.0)).xyz;
+  gl_Position = projection * view * model[0] * vec4(-0.5, 0.5, -0.5, 1.0);
   EmitVertex();
   EndPrimitive();
 }
 
-void drawRightFace(vec4 position)
+void drawRightFace()
 {
   normal = vec3(1.0, 0.0, 0.0);
-  fragment_position = vec3(model[0] * (position + vec4(0.5, 0.5, 0.5, 0.0)));
-  gl_Position = projection * view * model[0] * (position + vec4(0.5, 0.5, 0.5, 0.0)) * vec4(-1.0, 1.0, 1.0, 1.0);
+  fragment_position = (model[0] * vec4(0.5, 0.5, -0.5, 1.0)).xyz;
+  gl_Position = projection * view * model[0] * (vec4(0.5, 0.5, -0.5, 1.0));
   EmitVertex();
-  fragment_position = vec3(model[0] * (position + vec4(0.5, 0.5, -0.5, 0.0)));
-  gl_Position = projection * view * model[0] * (position + vec4(0.5, 0.5, -0.5, 0.0)) * vec4(-1.0, 1.0, 1.0, 1.0);
+  fragment_position = (model[0] * vec4(0.5, 0.5, 0.5, 1.0)).xyz;
+  gl_Position = projection * view * model[0] * vec4(0.5, 0.5, 0.5, 1.0);
   EmitVertex();
-  fragment_position = vec3(model[0] * (position + vec4(0.5, -0.5, 0.5, 0.0)));
-  gl_Position = projection * view * model[0] * (position + vec4(0.5, -0.5, 0.5, 0.0)) * vec4(-1.0, 1.0, 1.0, 1.0);
+  fragment_position = (model[0] * vec4(0.5, -0.5, -0.5, 1.0)).xyz;
+  gl_Position = projection * view * model[0] * vec4(0.5, -0.5, -0.5, 1.0);
   EmitVertex();
-  fragment_position = vec3(model[0] * (position + vec4(0.5, -0.5, -0.5, 0.0)));
-  gl_Position = projection * view * model[0] * (position + vec4(0.5, -0.5, -0.5, 0.0)) * vec4(-1.0, 1.0, 1.0, 1.0);
+  fragment_position = (model[0] * vec4(0.5, -0.5, 0.5, 1.0)).xyz;
+  gl_Position = projection * view * model[0] * vec4(0.5, -0.5, 0.5, 1.0);
   EmitVertex();
   EndPrimitive();
 }
 
-void drawBottomFace(vec4 position)
+void drawBottomFace()
 {
   normal = vec3(0.0, -1.0, 0.0);
-  fragment_position = vec3(model[0] * (position + vec4(0.5, -0.5, 0.5, 0.0)));
-  gl_Position = projection * view * model[0] * (position + vec4(0.5, -0.5, 0.5, 0.0)) * vec4(-1.0, 1.0, 1.0, 1.0);
+  fragment_position = (model[0] * vec4(0.5, -0.5, -0.5, 1.0)).xyz;
+  gl_Position = projection * view * model[0] * (vec4(0.5, -0.5, -0.5, 1.0));
   EmitVertex();
-  fragment_position = vec3(model[0] * (position + vec4(0.5, -0.5, -0.5, 0.0)));
-  gl_Position = projection * view * model[0] * (position + vec4(0.5, -0.5, -0.5, 0.0)) * vec4(-1.0, 1.0, 1.0, 1.0);
+  fragment_position = (model[0] * vec4(0.5, -0.5, 0.5, 1.0)).xyz;
+  gl_Position = projection * view * model[0] * vec4(0.5, -0.5, 0.5, 1.0);
   EmitVertex();
-  fragment_position = vec3(model[0] * (position + vec4(-0.5, -0.5, 0.5, 0.0)));
-  gl_Position = projection * view * model[0] * (position + vec4(-0.5, -0.5, 0.5, 0.0)) * vec4(-1.0, 1.0, 1.0, 1.0);
+  fragment_position = (model[0] * vec4(-0.5, -0.5, -0.5, 1.0)).xyz;
+  gl_Position = projection * view * model[0] * vec4(-0.5, -0.5, -0.5, 1.0);
   EmitVertex();
-  fragment_position = vec3(model[0] * (position + vec4(-0.5, -0.5, -0.5, 0.0)));
-  gl_Position = projection * view * model[0] * (position + vec4(-0.5, -0.5, -0.5, 0.0)) * vec4(-1.0, 1.0, 1.0, 1.0);
+  fragment_position = (model[0] * vec4(-0.5, -0.5, 0.5, 1.0)).xyz;
+  gl_Position = projection * view * model[0] * vec4(-0.5, -0.5, 0.5, 1.0);
   EmitVertex();
   EndPrimitive();
 }
 
-void drawTopFace(vec4 position)
+void drawTopFace()
 {
   normal = vec3(0.0, 1.0, 0.0);
-  fragment_position = vec3(model[0] * (position + vec4(-0.5, 0.5, -0.5, 0.0)));
-  gl_Position = projection * view * model[0] * (position + vec4(-0.5, 0.5, -0.5, 0.0)) * vec4(-1.0, 1.0, 1.0, 1.0);
+  fragment_position = (model[0] * vec4(-0.5, 0.5, 0.5, 1.0)).xyz;
+  gl_Position = projection * view * model[0] * (vec4(-0.5, 0.5, 0.5, 1.0));
   EmitVertex();
-  fragment_position = vec3(model[0] * (position + vec4(0.5, 0.5, -0.5, 0.0)));
-  gl_Position = projection * view * model[0] * (position + vec4(0.5, 0.5, -0.5, 0.0)) * vec4(-1.0, 1.0, 1.0, 1.0);
+  fragment_position = (model[0] * vec4(0.5, 0.5, 0.5, 1.0)).xyz;
+  gl_Position = projection * view * model[0] * vec4(0.5, 0.5, 0.5, 1.0);
   EmitVertex();
-  fragment_position = vec3(model[0] * (position + vec4(-0.5, 0.5, 0.5, 0.0)));
-  gl_Position = projection * view * model[0] * (position + vec4(-0.5, 0.5, 0.5, 0.0)) * vec4(-1.0, 1.0, 1.0, 1.0);
+  fragment_position = (model[0] * vec4(-0.5, 0.5, -0.5, 1.0)).xyz;
+  gl_Position = projection * view * model[0] * vec4(-0.5, 0.5, -0.5, 1.0);
   EmitVertex();
-  fragment_position = vec3(model[0] * (position + vec4(0.5, 0.5, 0.5, 0.0)));
-  gl_Position = projection * view * model[0] * (position + vec4(0.5, 0.5, 0.5, 0.0)) * vec4(-1.0, 1.0, 1.0, 1.0);
+  fragment_position = (model[0] * vec4(0.5, 0.5, -0.5, 1.0)).xyz;
+  gl_Position = projection * view * model[0] * vec4(0.5, 0.5, -0.5, 1.0);
   EmitVertex();
   EndPrimitive();
 }
@@ -272,12 +275,12 @@ void main()
   voxel_shininess = vertex_shininess[0];
   voxel_opacity = vertex_opacity[0];
 
-  if (render_left[0] == 1.0) drawLeftFace(vec4(0.0, 0.0, 0.0, 1.0));
-  if (render_right[0] == 1.0) drawRightFace(vec4(0.0, 0.0, 0.0, 1.0));
-  if (render_bottom[0] == 1.0) drawBottomFace(vec4(0.0, 0.0, 0.0, 1.0));
-  if (render_top[0] == 1.0) drawTopFace(vec4(0.0, 0.0, 0.0, 1.0));
-  if (render_front[0] == 1.0) drawFrontFace(vec4(0.0, 0.0, 0.0, 1.0));
-  if (render_back[0] == 1.0) drawBackFace(vec4(0.0, 0.0, 0.0, 1.0));
+  if (render_left[0] == 1.0) drawLeftFace();
+  if (render_right[0] == 1.0) drawRightFace();
+  if (render_bottom[0] == 1.0) drawBottomFace();
+  if (render_top[0] == 1.0) drawTopFace();
+  if (render_front[0] == 1.0) drawFrontFace();
+  if (render_back[0] == 1.0) drawBackFace();
 }
 )glsl";
 
