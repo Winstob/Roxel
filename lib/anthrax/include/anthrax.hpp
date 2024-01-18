@@ -101,6 +101,7 @@ private:
   static float lastFrame;
 
   static bool wireframe_mode_;
+  static bool ambient_occlusion_;
   static bool window_size_changed_;
 
 };

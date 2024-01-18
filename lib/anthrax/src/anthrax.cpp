@@ -22,6 +22,7 @@ float Anthrax::mouse_y_;
 float Anthrax::deltaTime;
 float Anthrax::lastFrame;
 bool Anthrax::wireframe_mode_;
+bool Anthrax::ambient_occlusion_ = true;
 bool Anthrax::window_size_changed_ = true;
 
 
@@ -37,6 +38,7 @@ Anthrax::Anthrax()
   deltaTime = 0.0f;
   lastFrame = 0.0f;
   wireframe_mode_ = false;
+  ambient_occlusion_ = false;
 }
 
 int Anthrax::startWindow()
@@ -178,6 +180,7 @@ int Anthrax::renderFrame()
   ssao_pass_shader_->setMat4("view", camera.GetViewMatrix());
   glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)window_width_ / (float)window_height_, 0.1f, (float)render_distance_);
   ssao_pass_shader_->setMat4("projection", projection);
+  ssao_pass_shader_->setFloat("do_ambient_occlusion", ambient_occlusion_ ? 1.0 : 0.0);
   renderQuad();
 
   // Go back the default framebuffer and draw the scene to the screen
@@ -374,9 +377,11 @@ void Anthrax::ssaoFramebufferSetup()
   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
       std::cout << "Framebuffer not complete!" << std::endl;
 
+  /*
   ssao_pass_shader_->use();
   ssao_pass_shader_->setFloat("window_width_", window_width_);
   ssao_pass_shader_->setFloat("window_height_", window_height_);
+  */
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   return;
@@ -392,7 +397,8 @@ void Anthrax::ssaoKernelSetup()
   std::default_random_engine generator;
   for (unsigned int i = 0; i < 64; ++i)
   {
-    glm::vec3 sample(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator), randomFloats(generator) * 2.0 - 1.0);
+    //glm::vec3 sample(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator), randomFloats(generator) * 2.0 - 1.0);
+    glm::vec3 sample(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, randomFloats(generator));
     sample = glm::normalize(sample);
     sample *= randomFloats(generator);
     float scale = float(i) / 64.0f;
@@ -435,6 +441,18 @@ void Anthrax::key_callback(GLFWwindow *window, int key, int scancode, int action
     else
     {
       wireframe_mode_ = true;
+    }
+  }
+
+  if (key == GLFW_KEY_1 && action  == GLFW_PRESS)
+  {
+    if (ambient_occlusion_)
+    {
+      ambient_occlusion_ = false;
+    }
+    else
+    {
+      ambient_occlusion_ = true;
     }
   }
 }

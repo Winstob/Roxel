@@ -368,8 +368,7 @@ uniform vec3 samples[64];
 
 uniform mat4 view;
 uniform mat4 projection;
-uniform float window_width_;
-uniform float window_height_;
+uniform float do_ambient_occlusion;
 
 in vec2 tex_coords;
 
@@ -381,40 +380,56 @@ const float bias = 0.025;
 
 void main()
 {
-    vec2 noiseScale = vec2(window_width_/4.0, window_height_/4.0); 
+  if (do_ambient_occlusion == 0.0)
+  {
+    occlusion_factor = 1.0;
+    return;
+  }
 
-    // get input for SSAO algorithm
-    vec3 fragPos = (view * vec4(texture(g_position_texture_, tex_coords).xyz, 1.0)).xyz;
-    vec3 normal = normalize((transpose(inverse(view)) * vec4(texture(g_normal_texture_, tex_coords).rgb, 1.0)).xyz);
-    vec3 randomVec = normalize(texture(ssao_noise_texture_, tex_coords * noiseScale).xyz);
-    // create TBN change-of-basis matrix: from tangent-space to view-space
-    vec3 tangent = normalize(randomVec - normal * dot(randomVec, normal));
-    vec3 bitangent = cross(normal, tangent);
-    mat3 TBN = mat3(tangent, bitangent, normal);
-    // iterate over the sample kernel and calculate occlusion factor
-    float occlusion = 0.0;
-    for(int i = 0; i < kernelSize; ++i)
-    {
-        // get sample position
-        vec3 samplePos = TBN * samples[i]; // from tangent to view-space
-        samplePos = fragPos + samplePos * radius; 
-        
-        // project sample position (to sample texture) (to get position on screen/texture)
-        vec4 offset = vec4(samplePos, 1.0);
-        offset = projection * offset; // from view to clip-space
-        offset.xyz /= offset.w; // perspective divide
-        offset.xyz = offset.xyz * 0.5 + 0.5; // transform to range 0.0 - 1.0
-        
-        // get sample depth
-        float sampleDepth = (view * vec4(texture(g_position_texture_, offset.xy).xyz, 1.0)).z; // get depth value of kernel sample
-        
-        // range check & accumulate
-        float rangeCheck = smoothstep(0.0, 1.0, radius / abs(fragPos.z - sampleDepth));
-        occlusion += (sampleDepth >= samplePos.z + bias ? 1.0 : 0.0) * rangeCheck;           
-    }
-    occlusion = 1.0 - (occlusion / kernelSize);
+  // get input for SSAO algorithm
+  vec3 fragPos = (view * vec4(texture(g_position_texture_, tex_coords).xyz, 1.0)).xyz;
+  vec3 fragWorldPos = texture(g_position_texture_, tex_coords).xyz;
+  //vec3 normal = normalize((transpose(inverse(view)) * vec4(texture(g_normal_texture_, tex_coords).rgb, 1.0)).xyz);
+  vec3 normal = normalize(texture(g_normal_texture_, tex_coords).rgb);
+  vec3 randomVec = normalize(texture(ssao_noise_texture_, tex_coords).xyz);
+  // create TBN change-of-basis matrix: from tangent-space to view-space
+  vec3 tangent = normalize(randomVec - normal * dot(randomVec, normal));
+  vec3 bitangent = cross(normal, tangent);
+  mat3 TBN = mat3(tangent, bitangent, normal);
+
+  /*
+  TBN = mat3(
+      normal.y + abs(normal.z), -normal.x, 0,
+      normal.x, normal.y, normal.z,
+      0, -normal.z, normal.y + abs(normal.x)
+  );
+  */
+
+  // iterate over the sample kernel and calculate occlusion factor
+  float occlusion = 0.0;
+  for(int i = 0; i < kernelSize; ++i)
+  {
+    // get sample position
+    vec3 samplePos = TBN * samples[i]; // from tangent to view-space
+    samplePos = fragWorldPos + samplePos * radius; 
+    samplePos = (view * vec4(samplePos, 1.0)).xyz;
     
-    occlusion_factor = occlusion;
+    // project sample position (to sample texture) (to get position on screen/texture)
+    vec4 offset = vec4(samplePos, 1.0);
+    offset = projection * offset; // from view to clip-space
+    offset.xyz /= offset.w; // perspective divide
+    offset.xyz = offset.xyz * 0.5 + 0.5; // transform to range 0.0 - 1.0
+    
+    // get sample depth
+    float sampleDepth = (view * vec4(texture(g_position_texture_, offset.xy).xyz, 1.0)).z; // get depth value of kernel sample
+    
+    // range check & accumulate
+    float rangeCheck = smoothstep(0.0, 1.0, radius / abs(fragPos.z - sampleDepth));
+    occlusion += (sampleDepth >= samplePos.z + bias ? 1.0 : 0.0) * rangeCheck;           
+  }
+  occlusion = 1.0 - (occlusion / kernelSize);
+  
+  occlusion_factor = occlusion;
 }
 
 )glsl";
@@ -470,7 +485,7 @@ void main()
   
   // Calculate sunlight phong vector
   // Calculate ambient light
-  vec3 sunlight_ambient = sunlight.ambient * voxel_color;
+  vec3 sunlight_ambient = sunlight.ambient * voxel_color * ambient_occlusion;
   // Calculate diffuse light
   float diff = max(dot(normal, -normalize(sunlight.direction)), 0.0);
   vec3 sunlight_diffuse = sunlight.diffuse * (diff * voxel_color);
@@ -486,9 +501,9 @@ void main()
   // Calculate Phong model lighting
   vec3 phong = sunlight_ambient + sunlight_diffuse + sunlight_specular;
 
-  //gl_FragColor = vec4(phong, voxel_opacity);
-  gl_FragColor = vec4(0.0);
-  if (voxel_opacity != 0.0) gl_FragColor = vec4(vec3(ambient_occlusion), 1.0);
+  gl_FragColor = vec4(phong, voxel_opacity);
+  //gl_FragColor = vec4(0.0);
+  //if (voxel_opacity != 0.0) gl_FragColor = vec4(vec3(ambient_occlusion), 1.0);
 }
 )glsl";
 
