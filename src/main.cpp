@@ -58,7 +58,7 @@ int main()
     num_frames++;
 #endif
     Anthrax::vec3<int64_t> position = Anthrax::vec3<int64_t>(player.getPosition().getX(), player.getPosition().getY(), player.getPosition().getZ());
-    world.loadArea(position);
+    //world.loadArea(position);
 
     window_closed = anthrax_handle_->renderFrame();
     player.processInput();

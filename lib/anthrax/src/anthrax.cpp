@@ -102,14 +102,6 @@ int Anthrax::startWindow()
   lighting_pass_shader_->setInt("g_color_texture_", 2);
   lighting_pass_shader_->setInt("g_material_texture_", 3);
   lighting_pass_shader_->setInt("ssao_texture_", 4);
-  /*
-  geometry_pass_shader_->setInt("g_position_texture_", 0);
-  geometry_pass_shader_->setInt("g_normal_texture_", 1);
-  geometry_pass_shader_->setInt("g_albedo_texture_", 2);
-  */
-
-  cube_shader_ = new Shader(Shader::ShaderInputType::CODESTRING, cube_vertex_shader.c_str(), cube_fragment_shader.c_str(), cube_geometry_shader.c_str());
-  screen_shader_ = new Shader(Shader::ShaderInputType::CODESTRING, screen_vertex_shader.c_str(), screen_fragment_shader.c_str());
 
   gBufferSetup();
   ssaoFramebufferSetup();
@@ -146,7 +138,6 @@ int Anthrax::renderFrame()
 
   if (window_size_changed_)
   {
-    resizeWindow();
     gBufferSetup();
     ssaoFramebufferSetup();
     ssaoBlurFramebufferSetup();
@@ -218,11 +209,6 @@ int Anthrax::renderFrame()
   lighting_pass_shader_->setVec3("sunlight.diffuse", glm::vec3(0.4, 0.4, 0.2));
   lighting_pass_shader_->setVec3("sunlight.specular", glm::vec3(0.3));
   renderQuad();
-  /*
-  screen_shader_->use();
-  glBindTexture(GL_TEXTURE_2D, texture_color_buffer_);
-  renderQuad();
-  */
 
   // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
   // -------------------------------------------------------------------------------
@@ -235,8 +221,6 @@ int Anthrax::renderFrame()
     delete ssao_pass_shader_;
     delete ssao_blur_pass_shader_;
     delete lighting_pass_shader_;
-    delete cube_shader_;
-    delete screen_shader_;
 
     glDeleteFramebuffers(1, &g_buffer_);
     glDeleteTextures(1, &g_position_texture_);
@@ -252,8 +236,6 @@ int Anthrax::renderFrame()
 
     glDeleteVertexArrays(1, &quad_vao_);
     glDeleteBuffers(1, &quad_vbo_);
-    glDeleteRenderbuffers(1, &renderbuffer_object_);
-    glDeleteFramebuffers(1, &framebuffer_);
 
     delete voxel_cache_manager_;
     // glfw: terminate, clearing all previously allocated GLFW resources.
@@ -275,15 +257,6 @@ void Anthrax::renderScene()
   // Pass projection matrix to shader (note that in this case it could change every frame)
   glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)window_width_ / (float)window_height_, 0.1f, (float)render_distance_);
   geometry_pass_shader_->setMat4("projection", projection);
-
-  // Set sunlight settings
-  //cube_shader->setVec3("sunlight.direction", glm::vec3(-1.0f, -0.5f, 0.0f));
-  /*
-  cube_shader_->setVec3("sunlight.direction", glm::vec3(glm::cos(glfwGetTime()/16), glm::sin(glfwGetTime()/16), 0.0f));
-  cube_shader_->setVec3("sunlight.ambient", glm::vec3(0.5, 0.5, 0.7));
-  cube_shader_->setVec3("sunlight.diffuse", glm::vec3(0.4, 0.4, 0.2));
-  cube_shader_->setVec3("sunlight.specular", glm::vec3(0.3));
-  */
 
   if (voxel_buffer_.size() > 0)
   {
@@ -323,48 +296,44 @@ void Anthrax::gBufferSetup()
     glGenRenderbuffers(1, &g_depth_rbo_);
   }
 
-  if (window_size_changed_)
-  {
-    // position color buffer
-    glBindTexture(GL_TEXTURE_2D, g_position_texture_);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, window_width_, window_height_, 0, GL_RGBA, GL_FLOAT, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, g_position_texture_, 0);
-    // normal color buffer
-    glBindTexture(GL_TEXTURE_2D, g_normal_texture_);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, window_width_, window_height_, 0, GL_RGBA, GL_FLOAT, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, g_normal_texture_, 0);
-    // color buffer
-    glBindTexture(GL_TEXTURE_2D, g_color_texture_);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, window_width_, window_height_, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, g_color_texture_, 0);
-    // material buffer
-    glBindTexture(GL_TEXTURE_2D, g_material_texture_);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, window_width_, window_height_, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, g_material_texture_, 0);
+  // position color buffer
+  glBindTexture(GL_TEXTURE_2D, g_position_texture_);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, window_width_, window_height_, 0, GL_RGBA, GL_FLOAT, NULL);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, g_position_texture_, 0);
+  // normal color buffer
+  glBindTexture(GL_TEXTURE_2D, g_normal_texture_);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, window_width_, window_height_, 0, GL_RGBA, GL_FLOAT, NULL);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, g_normal_texture_, 0);
+  // color buffer
+  glBindTexture(GL_TEXTURE_2D, g_color_texture_);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, window_width_, window_height_, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, g_color_texture_, 0);
+  // material buffer
+  glBindTexture(GL_TEXTURE_2D, g_material_texture_);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, window_width_, window_height_, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, g_material_texture_, 0);
 
-    // tell OpenGL which color attachments we'll use (of this framebuffer) for rendering 
-    unsigned int attachments[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
-    glDrawBuffers(4, attachments);
-    // create and attach depth buffer (renderbuffer)
-    glBindRenderbuffer(GL_RENDERBUFFER, g_depth_rbo_);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, window_width_, window_height_);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, g_depth_rbo_);
+  // tell OpenGL which color attachments we'll use (of this framebuffer) for rendering 
+  unsigned int attachments[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
+  glDrawBuffers(4, attachments);
+  // create and attach depth buffer (renderbuffer)
+  glBindRenderbuffer(GL_RENDERBUFFER, g_depth_rbo_);
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, window_width_, window_height_);
+  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, g_depth_rbo_);
 
-    // finally check if framebuffer is complete
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        std::cout << "Framebuffer not complete!" << std::endl;
-
-  }
+  // finally check if framebuffer is complete
+  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+      std::cout << "Framebuffer not complete!" << std::endl;
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   return;
@@ -471,6 +440,7 @@ void Anthrax::ssaoKernelSetup()
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
   return;
 }
 
@@ -531,23 +501,6 @@ void Anthrax::renderQuad()
   return;
 }
 
-
-void Anthrax::resizeWindow()
-{
-  /*
-  glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_);
-  glBindTexture(GL_TEXTURE_2D, texture_color_buffer_);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, window_width_, window_height_, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_color_buffer_, 0);
-  glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer_object_);
-  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, window_width_, window_height_); // use a single renderbuffer object for both a depth AND stencil buffer.
-  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderbuffer_object_); // now actually attach it
-                                                                                                        */
-
-  return;
-}
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
@@ -622,8 +575,6 @@ void Anthrax::getMousePosition(MousePosition *mouse_pos)
 void Anthrax::addVoxel(std::weak_ptr<Cube> cube)
 {
   voxel_cache_manager_->addCube(cube);
-  //voxel_display_list_.push_back(cube);
-  //voxel_buffer_.push_back(*cube);
 }
 
 void Anthrax::setCameraPosition(vec3<float> position)
