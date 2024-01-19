@@ -300,62 +300,6 @@ void main()
 )glsl";
 
 
-const std::string ssao_pass_fshader1 = R"glsl(
-#version 330 core
-layout (location = 0) out float occlusion_factor;
-
-uniform sampler2D g_position_texture_;
-uniform sampler2D g_normal_texture_;
-
-uniform vec3 samples[64];
-
-uniform mat4 view;
-uniform mat4 projection;
-
-in vec2 tex_coords;
-
-const float radius = 2.5;
-const float bias = 0.025;
-
-void main()
-{
-  vec3 frag_world_pos = texture(g_position_texture_, tex_coords).rgb;
-  vec3 frag_view_pos = (view * vec4(frag_world_pos, 1.0)).xyz;
-  vec3 frag_normal = texture(g_normal_texture_, tex_coords).rgb;
-
-  float occlusion = 0.0;
-  for (int i = 0; i < 64; i++)
-  {
-    //mat3 normal_transform_matrix = mat3(1.0);
-    /*
-    mat3 normal_transform_matrix = mat3(
-        frag_normal.y + abs(frag_normal.z), frag_normal.x, 0,
-        -frag_normal.x, frag_normal.y, -frag_normal.z,
-        0, frag_normal.z, frag_normal.y + abs(frag_normal.x)
-    );
-    */
-    mat3 normal_transform_matrix = mat3(
-        frag_normal.y + abs(frag_normal.z), -frag_normal.x, 0,
-        frag_normal.x, frag_normal.y, frag_normal.z,
-        0, -frag_normal.z, frag_normal.y + abs(frag_normal.x)
-    );
-    vec3 sample_world_pos = frag_world_pos + normal_transform_matrix * samples[i] * radius;
-    vec3 sample_view_pos = (view * vec4(sample_world_pos, 1.0)).xyz;
-    vec4 tmp = projection * vec4(sample_view_pos, 1.0);
-    vec3 sample_screen_pos = tmp.xyz / tmp.w * 0.5 + 0.5;
-
-    tmp = (projection * view * vec4(texture(g_position_texture_, sample_screen_pos.xy).rgb, 1.0));
-    float sample_depth_comparison = tmp.z / tmp.w;
-    //float sample_depth_comparison = (view * vec4(texture(g_position_texture_, sample_screen_pos.xy).rgb, 1.0)).z; // sus
-
-    occlusion += (sample_depth_comparison >= sample_screen_pos.z + bias ? 1.0 : 0.0);
-  }
-
-  occlusion_factor = 1.0 - (occlusion / 64.0);
-}
-)glsl";
-
-
 const std::string ssao_pass_fshader = R"glsl(
 #version 330 core
 layout (location = 0) out float occlusion_factor;
@@ -364,7 +308,7 @@ uniform sampler2D g_position_texture_;
 uniform sampler2D g_normal_texture_;
 uniform sampler2D ssao_noise_texture_;
 
-uniform vec3 samples[64];
+uniform vec3 samples[128];
 
 uniform mat4 view;
 uniform mat4 projection;
@@ -372,8 +316,8 @@ uniform float do_ambient_occlusion;
 
 in vec2 tex_coords;
 
-const float kernelSize = 64.0;
-const float radius = 0.5;
+const float kernelSize = 128.0;
+const float radius = 5.0;
 const float bias = 0.025;
 
 
@@ -392,18 +336,23 @@ void main()
   //vec3 normal = normalize((transpose(inverse(view)) * vec4(texture(g_normal_texture_, tex_coords).rgb, 1.0)).xyz);
   vec3 normal = normalize(texture(g_normal_texture_, tex_coords).rgb);
   vec3 randomVec = normalize(texture(ssao_noise_texture_, tex_coords).xyz);
+
   // create TBN change-of-basis matrix: from tangent-space to view-space
+  // Two wys to create this: TBN matrix or a slightly faster method that only works for axis-aligned normals
+  // ----- TBN ----- \\
+  // NOTE: With this method, the samples must be within a hemisphere with +z normal
+  /*
   vec3 tangent = normalize(randomVec - normal * dot(randomVec, normal));
   vec3 bitangent = cross(normal, tangent);
   mat3 TBN = mat3(tangent, bitangent, normal);
-
-  /*
-  TBN = mat3(
+  */
+  // ----- AXIS-ALIGNED ----- \\
+  // NOTE: With this method, the samples must be within a hemisphere with +y normal
+  mat3 TBN = mat3(
       normal.y + abs(normal.z), -normal.x, 0,
       normal.x, normal.y, normal.z,
       0, -normal.z, normal.y + abs(normal.x)
   );
-  */
 
   // iterate over the sample kernel and calculate occlusion factor
   float occlusion = 0.0;
@@ -432,6 +381,47 @@ void main()
   occlusion_factor = occlusion;
 }
 
+)glsl";
+
+
+const std::string ssao_blur_pass_vshader = R"glsl(
+#version 330 core
+layout (location = 0) in vec2 position;
+layout (location = 1) in vec2 texture_coordinates;
+
+out vec2 tex_coords;
+
+void main()
+{
+    tex_coords = texture_coordinates;
+    gl_Position = vec4(position, 0.0, 1.0);
+}
+)glsl";
+
+
+const std::string ssao_blur_pass_fshader = R"glsl(
+#version 330 core
+layout (location = 0) out float frag_color;
+
+uniform sampler2D ssao_texture_;
+uniform float blur_radius;
+
+in vec2 tex_coords;
+
+void main()
+{
+  vec2 texel_size = 1.0 / vec2(textureSize(ssao_texture_, 0));
+  float result = 0.0;
+  for (float x = -blur_radius; x < blur_radius; ++x)
+  {
+    for (float y = -blur_radius; y < blur_radius; ++y)
+    {
+      vec2 offset = vec2(x, y) * texel_size;
+      result += texture(ssao_texture_, tex_coords + offset).r;
+    }
+  }
+  frag_color = result / (4.0 * blur_radius * blur_radius);
+}
 )glsl";
 
 

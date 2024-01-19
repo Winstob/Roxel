@@ -38,7 +38,7 @@ Anthrax::Anthrax()
   deltaTime = 0.0f;
   lastFrame = 0.0f;
   wireframe_mode_ = false;
-  ambient_occlusion_ = false;
+  ambient_occlusion_ = true;
 }
 
 int Anthrax::startWindow()
@@ -86,6 +86,7 @@ int Anthrax::startWindow()
   geometry_pass_shader_ = new Shader(Shader::ShaderInputType::CODESTRING, geometry_pass_vshader.c_str(), geometry_pass_fshader.c_str(), geometry_pass_gshader.c_str());
 
   ssao_pass_shader_ = new Shader(Shader::ShaderInputType::CODESTRING, ssao_pass_vshader.c_str(), ssao_pass_fshader.c_str());
+  ssao_blur_pass_shader_ = new Shader(Shader::ShaderInputType::CODESTRING, ssao_blur_pass_vshader.c_str(), ssao_blur_pass_fshader.c_str());
 
   lighting_pass_shader_ = new Shader(Shader::ShaderInputType::CODESTRING, lighting_pass_vshader.c_str(), lighting_pass_fshader.c_str());
 
@@ -93,6 +94,8 @@ int Anthrax::startWindow()
   ssao_pass_shader_->setInt("g_position_texture_", 0);
   ssao_pass_shader_->setInt("g_normal_texture_", 1);
   ssao_pass_shader_->setInt("ssao_noise_texture_", 2);
+  ssao_blur_pass_shader_->use();
+  ssao_blur_pass_shader_->setInt("ssao_texture_", 0);
   lighting_pass_shader_->use();
   lighting_pass_shader_->setInt("g_position_texture_", 0);
   lighting_pass_shader_->setInt("g_normal_texture_", 1);
@@ -110,6 +113,7 @@ int Anthrax::startWindow()
 
   gBufferSetup();
   ssaoFramebufferSetup();
+  ssaoBlurFramebufferSetup();
   ssaoKernelSetup();
 
   // Initialize the voxel cache
@@ -145,6 +149,7 @@ int Anthrax::renderFrame()
     resizeWindow();
     gBufferSetup();
     ssaoFramebufferSetup();
+    ssaoBlurFramebufferSetup();
     window_size_changed_ = false;
   }
   if (wireframe_mode_)
@@ -183,6 +188,15 @@ int Anthrax::renderFrame()
   ssao_pass_shader_->setFloat("do_ambient_occlusion", ambient_occlusion_ ? 1.0 : 0.0);
   renderQuad();
 
+  // SSAO blur pass
+  glBindFramebuffer(GL_FRAMEBUFFER, ssao_blur_framebuffer_);
+  glClear(GL_COLOR_BUFFER_BIT);
+  ssao_blur_pass_shader_->use();
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, ssao_texture_);
+  ssao_blur_pass_shader_->setFloat("blur_radius", 1.0);
+  renderQuad();
+
   // Go back the default framebuffer and draw the scene to the screen
   // Lighting pass
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -197,7 +211,7 @@ int Anthrax::renderFrame()
   glActiveTexture(GL_TEXTURE3);
   glBindTexture(GL_TEXTURE_2D, g_material_texture_);
   glActiveTexture(GL_TEXTURE4);
-  glBindTexture(GL_TEXTURE_2D, ssao_texture_);
+  glBindTexture(GL_TEXTURE_2D, ssao_blurred_texture_);
   lighting_pass_shader_->setVec3("view_position", camera.position_);
   lighting_pass_shader_->setVec3("sunlight.direction", glm::vec3(glm::cos(glfwGetTime()/16), glm::sin(glfwGetTime()/16), 0.0f));
   lighting_pass_shader_->setVec3("sunlight.ambient", glm::vec3(0.5, 0.5, 0.7));
@@ -217,8 +231,9 @@ int Anthrax::renderFrame()
 
   if (glfwWindowShouldClose(window))
   {
-    delete ssao_pass_shader_;
     delete geometry_pass_shader_;
+    delete ssao_pass_shader_;
+    delete ssao_blur_pass_shader_;
     delete lighting_pass_shader_;
     delete cube_shader_;
     delete screen_shader_;
@@ -232,6 +247,8 @@ int Anthrax::renderFrame()
 
     glDeleteFramebuffers(1, &ssao_framebuffer_);
     glDeleteTextures(1, &ssao_texture_);
+    glDeleteFramebuffers(1, &ssao_blur_framebuffer_);
+    glDeleteTextures(1, &ssao_blurred_texture_);
 
     glDeleteVertexArrays(1, &quad_vao_);
     glDeleteBuffers(1, &quad_vbo_);
@@ -388,6 +405,34 @@ void Anthrax::ssaoFramebufferSetup()
 }
 
 
+void Anthrax::ssaoBlurFramebufferSetup()
+{
+  if (ssao_blur_framebuffer_ == 0)
+  {
+    glGenFramebuffers(1, &ssao_blur_framebuffer_);
+  }
+  glBindFramebuffer(GL_FRAMEBUFFER, ssao_blur_framebuffer_);
+
+  if (ssao_blurred_texture_ == 0)
+  {
+    glGenTextures(1, &ssao_blurred_texture_);
+  }
+
+  // ssao color buffer
+  glBindTexture(GL_TEXTURE_2D, ssao_blurred_texture_);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, window_width_, window_height_, 0, GL_RED, GL_FLOAT, NULL);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssao_blurred_texture_, 0);
+
+  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+      std::cout << "Framebuffer not complete!" << std::endl;
+
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  return;
+}
+
+
 void Anthrax::ssaoKernelSetup()
 {
   glBindFramebuffer(GL_FRAMEBUFFER, ssao_framebuffer_);
@@ -395,13 +440,13 @@ void Anthrax::ssaoKernelSetup()
 
   std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0); // generates random floats between 0.0 and 1.0
   std::default_random_engine generator;
-  for (unsigned int i = 0; i < 64; ++i)
+  for (unsigned int i = 0; i < 128; ++i)
   {
-    //glm::vec3 sample(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator), randomFloats(generator) * 2.0 - 1.0);
-    glm::vec3 sample(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, randomFloats(generator));
+    glm::vec3 sample(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator), randomFloats(generator) * 2.0 - 1.0);
+    //glm::vec3 sample(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, randomFloats(generator));
     sample = glm::normalize(sample);
     sample *= randomFloats(generator);
-    float scale = float(i) / 64.0f;
+    float scale = float(i) / 128.0f;
 
     // scale samples so they're more aligned to center of kernel
     //scale = lerp(0.1f, 1.0f, scale * scale);

@@ -64,6 +64,7 @@ private:
   void renderScene();
   void gBufferSetup();
   void ssaoFramebufferSetup();
+  void ssaoBlurFramebufferSetup();
   void ssaoKernelSetup();
   void renderQuad();
   void resizeWindow();
@@ -77,9 +78,11 @@ private:
   unsigned int framebuffer_, texture_color_buffer_, renderbuffer_object_;
   unsigned int g_buffer_ = 0, g_position_texture_ = 0, g_normal_texture_ = 0, g_color_texture_ = 0, g_material_texture_ = 0, g_depth_rbo_ = 0;
   unsigned int ssao_framebuffer_ = 0, ssao_texture_ = 0, ssao_noise_texture_ = 0;
+  unsigned int ssao_blur_framebuffer_ = 0, ssao_blurred_texture_ = 0;
   unsigned int quad_vao_ = 0, quad_vbo_ = 0;
   Shader* lighting_pass_shader_ = nullptr;
   Shader* ssao_pass_shader_ = nullptr;
+  Shader* ssao_blur_pass_shader_ = nullptr;
   Shader* geometry_pass_shader_ = nullptr;
   Shader* cube_shader_ = nullptr;
   Shader* screen_shader_ = nullptr;
