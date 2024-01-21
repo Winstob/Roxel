@@ -16,7 +16,7 @@ bool (*Octree::loadDecisionFunction)(uint64_t, int);
 World::World(std::string directory, Anthrax::Anthrax *anthrax_instance)
 {
   directory_ = directory;
-  octree_ = Octree(num_layers_, zone_depth_, directory_ + "/", Anthrax::vec3<int64_t>(0, 0, 0));
+  octree_ = Octree(nullptr, num_layers_, zone_depth_, directory_ + "/", Anthrax::vec3<int64_t>(0, 0, 0));
   octree_.setCubeSettingsFile("voxelmap.json");
 
   anthrax_instance_ = anthrax_instance;
