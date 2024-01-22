@@ -7,7 +7,7 @@
 #define VOXELCACHEMANAGER_HPP
 
 #include "cube.hpp"
-#include "voxeldisplaylist.hpp"
+#include "list.hpp"
 #include <vector>
 
 #define KB(x) ((size_t) (x) << 10)
@@ -41,7 +41,7 @@ private:
                          // necessary to prevent overwriting recently added voxels. This should be
                          // refreshed only after the voxels are rearranged within the cache
 
-  VoxelDisplayList voxel_display_list_;
+  List<Cube> voxel_display_list_;
 
   std::weak_ptr<Cube> *cache_emulator_;
 
