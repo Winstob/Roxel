@@ -23,6 +23,7 @@ Octree::Octree(Octree *parent, unsigned int layer, unsigned int file_layer, std:
     voxel_set_ = VoxelSet(1 << (3*layer_));
     voxel_set_.readFile(path_ + ".zn");
     is_uniform_ = voxel_set_.isUniform();
+    splitVoxelSet();
   }
   else if (layer_ == 0)
   {
@@ -42,6 +43,8 @@ Octree::Octree(Octree *parent, unsigned int layer, unsigned int file_layer, std:
   path_ = path;
   voxel_set_ = voxel_set;
   is_uniform_ = voxel_set_.isUniform();
+  if (layer_ != 0)
+    splitVoxelSet();
   is_leaf_ = true;
   cube_pointer_ = nullptr;
 }
@@ -63,6 +66,35 @@ Octree::~Octree()
     cube_pointer_ = nullptr;
   }
 }
+
+
+void Octree::splitVoxelSet()
+{
+  /*
+  VoxelSet halves[2];
+  voxel_set_.bisect(&(halves[0]), &(halves[1]));
+  VoxelSet quarters[4];
+  halves[0].bisect(&(quarters[0]), &(quarters[1]));
+  halves[1].bisect(&(quarters[2]), &(quarters[3]));
+
+  quarters[0].bisect(&(voxel_set_quadrants_[0]), &(voxel_set_quadrants_[1]));
+  quarters[1].bisect(&(voxel_set_quadrants_[2]), &(voxel_set_quadrants_[3]));
+  quarters[2].bisect(&(voxel_set_quadrants_[4]), &(voxel_set_quadrants_[5]));
+  quarters[3].bisect(&(voxel_set_quadrants_[6]), &(voxel_set_quadrants_[7]));
+  */
+  // Split in half
+  voxel_set_.bisect(&(voxel_set_quadrants_[2]), &(voxel_set_quadrants_[3]));
+  // Split in quarters
+  voxel_set_quadrants_[2].bisect(&(voxel_set_quadrants_[4]), &(voxel_set_quadrants_[5]));
+  voxel_set_quadrants_[3].bisect(&(voxel_set_quadrants_[6]), &(voxel_set_quadrants_[7]));
+  // Split in eighths
+  voxel_set_quadrants_[4].bisect(&(voxel_set_quadrants_[0]), &(voxel_set_quadrants_[1]));
+  voxel_set_quadrants_[5].bisect(&(voxel_set_quadrants_[2]), &(voxel_set_quadrants_[3]));
+  voxel_set_quadrants_[6].bisect(&(voxel_set_quadrants_[4]), &(voxel_set_quadrants_[5]));
+  voxel_set_quadrants_[7].bisect(&(voxel_set_quadrants_[6]), &(voxel_set_quadrants_[7]));
+  return;
+}
+
 
 void Octree::setCubeSettingsFile(std::string file)
 {
@@ -97,32 +129,6 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center)
     return;
   }
 
-  /*
-  if (!is_leaf_)
-  {
-    //bool children_are_leaves = false; // True if at least one child is a leaf
-    for (unsigned int i = 0; i < 8; i++)
-    {
-      if (children_[i] != nullptr && children_[i]->isLeaf())
-      {
-        children_are_leaves = true;
-        break;
-      }
-    }
-    if (!children_are_leaves)
-    {
-      // If no children are leaves, we don't need to worry about possibly updating them
-      for (unsigned int i = 0; i < 8; i++)
-      {
-        if (children_[i] != nullptr)
-        {
-          children_[i]->loadArea(load_center);
-        }
-      }
-      return;
-    }
-  }
-  */
 
   bool was_leaf = is_leaf_;
   is_leaf_ = true;
@@ -221,7 +227,8 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center)
       {
         if (children_[i] == nullptr)
         {
-          children_[i] = std::make_shared<Octree>(Octree(this, layer_ - 1, file_layer_, path_ + std::to_string(i), quadrant_centers[i], voxel_set_.getQuadrant(i)));
+          //children_[i] = std::make_shared<Octree>(Octree(this, layer_ - 1, file_layer_, path_ + std::to_string(i), quadrant_centers[i], voxel_set_.getQuadrant(i)));
+          children_[i] = std::make_shared<Octree>(Octree(this, layer_ - 1, file_layer_, path_ + std::to_string(i), quadrant_centers[i], voxel_set_quadrants_[i]));
         }
       }
     }

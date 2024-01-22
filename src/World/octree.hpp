@@ -22,6 +22,7 @@ public:
   Octree(Octree *parent, unsigned int layer, unsigned int file_layer, std::string path, Anthrax::vec3<int64_t> center, VoxelSet voxel_set);
   ~Octree();
   std::weak_ptr<Octree> getChildPointer(int child) { return children_[child]; }
+  void splitVoxelSet();
   void setCubeSettingsFile(std::string file);
   void setAnthraxPointer(Anthrax::Anthrax *anthrax_instance);
   void setLoadDecisionFunction(bool (*loadDecisionFunction)(uint64_t, int));
@@ -39,6 +40,7 @@ private:
   unsigned int layer_; // The location of this layer - layer 0 will always be a leaf 
   unsigned int file_layer_; // The layer at which files need to be read in
   VoxelSet voxel_set_; // Container for voxel data
+  VoxelSet voxel_set_quadrants_[8];
   std::string path_; // The path to get from the top layer to this one - formatted as "[0-7]*"
   bool is_uniform_; // True if all voxels in all subtrees are of the same type
   bool is_leaf_; // True if this octree has no children
