@@ -112,7 +112,8 @@ int Anthrax::startWindow()
   voxel_cache_manager_ = new VoxelCacheManager();
   voxel_cache_manager_->initialize(MB(8), [](glm::vec3 position)
       {
-      return (glm::length(position - camera.position_) < (256 << 6));// && 2*glm::angle(glm::normalize(position - camera.position_), camera.getLookDirection()) < 3.14/3);
+        //return true;
+        return (glm::length(position - camera.position_) < (256 << 6));// && 2*glm::angle(glm::normalize(position - camera.position_), camera.getLookDirection()) < 3.14/3);
       });
 
   // Face culling

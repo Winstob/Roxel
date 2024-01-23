@@ -196,6 +196,45 @@ VoxelSet VoxelSet::getQuadrant(int quadrant)
 void VoxelSet::bisect(VoxelSet *first, VoxelSet *second)
 {
   //int set_length = 1 << (3*layer_); // 2^(3*layer_)
+  int half_length = total_num_voxels_ >> 1;
+
+  std::vector<int>::iterator num_vox_itr = num_voxels_.begin();
+  std::vector<uint16_t>::iterator vox_type_itr = voxel_type_.begin();
+  int counter = 0;
+
+  while (counter < half_length)
+  {
+    int current_section_size = *num_vox_itr;
+    if (!current_section_size == 0)
+    {
+      counter += current_section_size;
+    }
+    num_vox_itr++;
+    vox_type_itr++;
+  }
+
+  std::vector<int> first_num_voxels(num_voxels_.begin(), num_vox_itr);
+  std::vector<uint16_t> first_voxel_type(voxel_type_.begin(), vox_type_itr);
+  std::vector<int> second_num_voxels(num_vox_itr, num_voxels_.end());
+  std::vector<uint16_t> second_voxel_type(vox_type_itr, voxel_type_.end());
+  if (half_length != counter)
+  {
+    first_num_voxels[first_num_voxels.size()-1] += half_length - counter;
+
+    std::vector<int> tmp = { counter - half_length };
+    second_num_voxels.insert(second_num_voxels.begin(), tmp.begin(), tmp.end());
+    std::vector<uint16_t> tmp1 = { first_voxel_type[first_voxel_type.size()-1] };
+    second_voxel_type.insert(second_voxel_type.begin(), tmp1.begin(), tmp1.end());
+  }
+  *first = VoxelSet(half_length, first_num_voxels, first_voxel_type);
+  *second = VoxelSet(half_length, second_num_voxels, second_voxel_type);
+  return;
+}
+
+
+void VoxelSet::bisectOld(VoxelSet *first, VoxelSet *second)
+{
+  //int set_length = 1 << (3*layer_); // 2^(3*layer_)
   int set_length = total_num_voxels_;
   int half_length = set_length >> 1;
 
@@ -238,9 +277,10 @@ void VoxelSet::bisect(VoxelSet *first, VoxelSet *second)
   }
   *first = VoxelSet(total_num_voxels_ >> 1, new_num_voxels, new_voxel_type);
 
-
-  new_num_voxels = std::vector<int>();
-  new_voxel_type  = std::vector<uint16_t>();
+  //new_num_voxels = std::vector<int>();
+  //new_voxel_type  = std::vector<uint16_t>();
+  new_num_voxels.clear();
+  new_voxel_type.clear();
   if (next_first_num_voxels != 0)
   {
     new_num_voxels.push_back(next_first_num_voxels);

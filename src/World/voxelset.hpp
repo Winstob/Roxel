@@ -26,6 +26,7 @@ public:
   bool isUniform() { return is_uniform_; }
   VoxelSet getQuadrant(int quadrant);
   void bisect(VoxelSet *first, VoxelSet *second);
+  void bisectOld(VoxelSet *first, VoxelSet *second);
 private:
   int total_num_voxels_;
   int num_counter_bytes_;

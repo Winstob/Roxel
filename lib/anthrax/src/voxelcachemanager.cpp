@@ -146,8 +146,8 @@ void VoxelCacheManager::renderCubes()
 
 void VoxelCacheManager::updateCache()
 {
-  // Free up space by removing elements in the main VoxelDisplayList that have been deleted
-  for (VoxelDisplayList::iterator itr = voxel_display_list_.begin(); itr != nullptr;)
+  // Free up space by removing elements in the main voxel display list that have been deleted
+  for (List<Cube>::iterator itr = voxel_display_list_.begin(); itr != nullptr;)
   {
     if ((*itr).expired())
     {
@@ -178,7 +178,7 @@ void VoxelCacheManager::updateCache()
   glBindBuffer(GL_ARRAY_BUFFER, voxels_cache_);
 
   unsigned int num_voxels_added = 0;
-  VoxelDisplayList::iterator itr = voxel_display_list_.begin();
+  List<Cube>::iterator itr = voxel_display_list_.begin();
   while (itr != nullptr && num_voxels_added < replaceable_cache_indices.size())
   {
     if (auto current_cube = (*itr).lock())

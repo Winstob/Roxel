@@ -57,6 +57,7 @@ class World
 {
 public:
   World(std::string directory, Anthrax::Anthrax *anthrax_instance);
+  void loadAreaRecursive(Anthrax::vec3<int64_t> center);
   void loadArea(Anthrax::vec3<int64_t> center);
   void getCubes();
 private:
@@ -65,8 +66,10 @@ private:
                                       // A zone is a single file. The size of a zone in one axis is
                                       // equal to 2^zone_depth_.
   std::string directory_; // Location on disk containing this world's files
-  Octree octree_; // Container for all voxels
+  std::shared_ptr<Octree> octree_; // Container for all voxels
 
+  Anthrax::List<Octree> leaves_;
+  Anthrax::List<Octree>::iterator current_leaf_itr_;
   Anthrax::Anthrax *anthrax_instance_;
 };
 #endif // WORLD_HPP

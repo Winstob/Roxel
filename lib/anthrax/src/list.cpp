@@ -1,36 +1,42 @@
 /* ---------------------------------------------------------------- *\
- * voxeldisplaylist.cpp
+ * list.cpp
  * Author: Gavin Ralston
  * Date Created: 2024-01-04
 \* ---------------------------------------------------------------- */
 
-#include "voxeldisplaylist.hpp"
 #include <iostream>
+#include "list.hpp"
 
 namespace Anthrax
 {
 
-
-VoxelDisplayList::VoxelDisplayList()
+/*
+template <class T>
+List<T>::List()
 {
   front_ = nullptr;
   back_ = nullptr;
   size_ = 0;
 }
+*/
 
 
-VoxelDisplayList::~VoxelDisplayList()
+/*
+template <class T>
+List<T>::~List()
 {
   while (front_ != nullptr)
   {
-    VoxelDisplayListNode *tmp = front_;
+    Node<T> *tmp = front_;
     front_ = front_->next();
     delete tmp;
   }
 }
+*/
 
-
-VoxelDisplayList::iterator VoxelDisplayList::erase(iterator itr)
+/*
+template <class T>
+typename List<T>::iterator List<T>::erase(iterator itr)
 {
   if (size_ <= 0) return nullptr;
 
@@ -64,35 +70,50 @@ VoxelDisplayList::iterator VoxelDisplayList::erase(iterator itr)
 }
 
 
-void VoxelDisplayList::push_back(std::weak_ptr<Cube> new_cube)
+template <class T>
+void List<T>::push_back(std::weak_ptr<T> new_cube)
 {
   if (front_ == nullptr)
   {
-    front_ = new VoxelDisplayListNode(new_cube, nullptr, nullptr);
+    front_ = new Node<T>(new_cube, nullptr, nullptr);
     back_ = front_;
   }
   else
   {
-    back_ = new VoxelDisplayListNode(new_cube, back_, nullptr);
+    back_ = new Node<T>(new_cube, back_, nullptr);
   }
   size_++;
 }
 
 
-void VoxelDisplayList::push_front(std::weak_ptr<Cube> new_cube)
+template <class T>
+void List<T>::push_front(std::weak_ptr<T> new_cube)
 {
   if (back_ == nullptr)
   {
-    front_ = new VoxelDisplayListNode(new_cube);
+    front_ = new Node<T>(new_cube);
     back_ = front_;
     return;
   }
   else
   {
-    front_ = new VoxelDisplayListNode(new_cube, nullptr, front_);
+    front_ = new Node<T>(new_cube, nullptr, front_);
   }
   size_++;
 }
+
+
+template <class T>
+void List<T>::destroy_list() {
+  while (front_ != nullptr)
+  {
+    Node<T> *tmp = front_;
+    front_ = front_->next();
+    delete tmp;
+  }
+
+}
+*/
 
 
 } // namespace Anthrax
