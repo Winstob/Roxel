@@ -27,7 +27,7 @@ int main()
 
   // Create a container to hold all the voxels that may need to be displayed, hand it to the world manager
   World world = World("world", anthrax_handle_);
-  world.loadArea(Anthrax::vec3<int64_t>(0, 0, 0));
+  world.loadAreaRecursive(Anthrax::vec3<int64_t>(0, 0, 0));
 
   //std::map<uint16_t, std::vector<Anthrax::Cube>> cube_map;
   /*
@@ -58,7 +58,7 @@ int main()
     num_frames++;
 #endif
     Anthrax::vec3<int64_t> position = Anthrax::vec3<int64_t>(player.getPosition().getX(), player.getPosition().getY(), player.getPosition().getZ());
-    world.loadArea(position);
+    world.loadAreaRecursive(position);
 
     window_closed = anthrax_handle_->renderFrame();
     player.processInput();

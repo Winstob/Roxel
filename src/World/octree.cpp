@@ -9,7 +9,7 @@
 #include "cubeconvert.hpp"
 
 
-Octree::Octree(Octree *parent, unsigned int layer, unsigned int file_layer, std::string path, Anthrax::vec3<int64_t> center)
+Octree::Octree(std::weak_ptr<Octree> parent, unsigned int layer, unsigned int file_layer, std::string path, Anthrax::vec3<int64_t> center)
 {
   parent_ = parent;
   layer_ = layer;
@@ -34,7 +34,7 @@ Octree::Octree(Octree *parent, unsigned int layer, unsigned int file_layer, std:
 }
 
 
-Octree::Octree(Octree *parent, unsigned int layer, unsigned int file_layer, std::string path, Anthrax::vec3<int64_t> center, VoxelSet voxel_set)
+Octree::Octree(std::weak_ptr<Octree> parent, unsigned int layer, unsigned int file_layer, std::string path, Anthrax::vec3<int64_t> center, VoxelSet voxel_set)
 {
   parent_ = parent;
   layer_ = layer;
@@ -114,7 +114,7 @@ void Octree::setLoadDecisionFunction(bool (*load_decision_function)(uint64_t, in
 }
 
 
-void Octree::loadArea(Anthrax::vec3<int64_t> load_center)
+void Octree::loadAreaRecursive(Anthrax::vec3<int64_t> load_center)
 {
   if (is_uniform_) 
   {
@@ -228,7 +228,7 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center)
         if (children_[i] == nullptr)
         {
           //children_[i] = std::make_shared<Octree>(Octree(this, layer_ - 1, file_layer_, path_ + std::to_string(i), quadrant_centers[i], voxel_set_.getQuadrant(i)));
-          children_[i] = std::make_shared<Octree>(Octree(this, layer_ - 1, file_layer_, path_ + std::to_string(i), quadrant_centers[i], voxel_set_quadrants_[i]));
+          children_[i] = std::make_shared<Octree>(Octree(weak_from_this(), layer_ - 1, file_layer_, path_ + std::to_string(i), quadrant_centers[i], voxel_set_quadrants_[i]));
         }
       }
     }
@@ -238,7 +238,7 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center)
       {
         if (children_[i] == nullptr)
         {
-          children_[i] = std::make_shared<Octree>(Octree(this, layer_ - 1, file_layer_, path_ + std::to_string(i), quadrant_centers[i]));
+          children_[i] = std::make_shared<Octree>(Octree(weak_from_this(), layer_ - 1, file_layer_, path_ + std::to_string(i), quadrant_centers[i]));
         }
       }
     }
@@ -246,7 +246,7 @@ void Octree::loadArea(Anthrax::vec3<int64_t> load_center)
     for (unsigned int i = 0; i < 8; i++)
     {
       if (children_[i] != nullptr)
-        children_[i]->loadArea(load_center);
+        children_[i]->loadAreaRecursive(load_center);
     }
   }
 
@@ -421,6 +421,221 @@ void Octree::getNewNeighbors()
     children_[i]->getNewNeighbors();
   }
 }
+
+
+void Octree::loadChildren()
+{
+  if (is_uniform_) 
+  {
+    is_leaf_ = true;
+    if (voxel_set_.getVoxelType() != 0)
+    {
+      for (unsigned int i = 0; i < 6; i++)
+      {
+        transparent_face_[i] = false;
+      }
+    }
+    return;
+  }
+
+
+  bool was_leaf = is_leaf_;
+  is_leaf_ = false;
+  Anthrax::vec3<int64_t> quadrant_centers[8];
+
+  // Iterate through all 8 quadrants to find the centers of each
+  int64_t quadrant_width = (1LL << (layer_-1)); // 2^(layer_-1)
+  for (unsigned int i = 0; i < 8; i++)
+  {
+    if (children_[i] != nullptr)
+    {
+      // Don't need to calculate the center since it won't be used anyway
+      continue;
+    }
+    // Approximate the distance of the closest point to the center of the desired loading area
+    if (i%2 == 0)
+    {
+      if (layer_ == 1)
+        quadrant_centers[i].setX(center_.getX() - (quadrant_width >> 1) - 1);
+      else
+        quadrant_centers[i].setX(center_.getX() - (quadrant_width >> 1));
+    }
+    else
+    {
+      quadrant_centers[i].setX(center_.getX() + (quadrant_width >> 1));
+    }
+
+    if (i < 4)
+    {
+      if (layer_ == 1)
+        quadrant_centers[i].setY(center_.getY() - (quadrant_width >> 1) - 1);
+      else
+        quadrant_centers[i].setY(center_.getY() - (quadrant_width >> 1));
+    }
+    else
+    {
+      quadrant_centers[i].setY(center_.getY() + (quadrant_width >> 1));
+    }
+ 
+    if (i == 0 || i == 1 || i == 4 || i == 5)
+    {
+      if (layer_ == 1)
+        quadrant_centers[i].setZ(center_.getZ() - (quadrant_width >> 1) - 1);
+      else
+        quadrant_centers[i].setZ(center_.getZ() - (quadrant_width >> 1));
+    }
+    else
+    {
+      quadrant_centers[i].setZ(center_.getZ() + (quadrant_width >> 1));
+    }
+  }
+
+  if (was_leaf)
+  {
+    if (cube_pointer_ != nullptr)
+    {
+      cube_pointer_.reset();
+      cube_pointer_ = nullptr;
+    }
+  }
+
+  if (layer_ <= file_layer_)
+  {
+    for (unsigned int i = 0; i < 8; i++)
+    {
+      if (children_[i] == nullptr)
+      {
+        //children_[i] = std::make_shared<Octree>(Octree(weak_from_this(), layer_ - 1, file_layer_, path_ + std::to_string(i), quadrant_centers[i], voxel_set_.getQuadrant(i)));
+        children_[i] = std::make_shared<Octree>(Octree(weak_from_this(), layer_ - 1, file_layer_, path_ + std::to_string(i), quadrant_centers[i], voxel_set_quadrants_[i]));
+      }
+    }
+  }
+  else
+  {
+    for (unsigned int i = 0; i < 8; i++)
+    {
+      if (children_[i] == nullptr)
+      {
+        children_[i] = std::make_shared<Octree>(Octree(weak_from_this(), layer_ - 1, file_layer_, path_ + std::to_string(i), quadrant_centers[i]));
+      }
+    }
+  }
+  //if (was_leaf == is_leaf_) return;
+
+  // Check each face and set transparent_face_ values accordingly
+  bool is_transparent = false;
+  // Right face
+  for (int i = 1; i < 8; i+=2)
+  {
+    if (!children_[i] || children_[i]->faceIsTransparent(0))
+    {
+      is_transparent = true;
+      break;
+    }
+  }
+  if (transparent_face_[0] != is_transparent)
+  {
+    if (auto tmp = neighbors_[1].lock()) tmp->neighbors_changed_ = true;
+    //if (neighbors_[1] != nullptr) neighbors_[1]->neighbors_changed_ = true;
+    transparent_face_[0] = is_transparent;
+  }
+  // Left face
+  is_transparent = false;
+  for (int i = 0; i < 8; i+=2)
+  {
+    if (!children_[i] || children_[i]->faceIsTransparent(1))
+    {
+      is_transparent = true;
+      break;
+    }
+  }
+  if (transparent_face_[1] != is_transparent)
+  {
+    if (auto tmp = neighbors_[0].lock()) tmp->neighbors_changed_ = true;
+    //if (neighbors_[0] != nullptr) neighbors_[0]->neighbors_changed_ = true;
+    transparent_face_[1] = is_transparent;
+  }
+  // Top face
+  is_transparent = false;
+  for (int i = 4; i < 8; i++)
+  {
+    if (!children_[i] || children_[i]->faceIsTransparent(2))
+    {
+      is_transparent = true;
+      break;
+    }
+  }
+  if (transparent_face_[2] != is_transparent)
+  {
+    if (auto tmp = neighbors_[3].lock()) tmp->neighbors_changed_ = true;
+    //if (neighbors_[3] != nullptr) neighbors_[3]->neighbors_changed_ = true;
+    transparent_face_[2] = is_transparent;
+  }
+  // Bottom face
+  is_transparent = false;
+  for (int i = 0; i < 4; i++)
+  {
+    if (!children_[i] || children_[i]->faceIsTransparent(3))
+    {
+      is_transparent = true;
+      break;
+    }
+  }
+  if (transparent_face_[3] != is_transparent)
+  {
+    if (auto tmp = neighbors_[2].lock()) tmp->neighbors_changed_ = true;
+    //if (neighbors_[2] != nullptr) neighbors_[2]->neighbors_changed_ = true;
+    transparent_face_[3] = is_transparent;
+  }
+  // Back face
+  is_transparent = false;
+  for (int i = 2; i < 8; i+=(i%2)*2+1)
+  {
+    if (!children_[i] || children_[i]->faceIsTransparent(4))
+    {
+      is_transparent = true;
+      break;
+    }
+  }
+  if (transparent_face_[4] != is_transparent)
+  {
+    if (auto tmp = neighbors_[5].lock()) tmp->neighbors_changed_ = true;
+    //if (neighbors_[5] != nullptr) neighbors_[5]->neighbors_changed_ = true;
+    transparent_face_[4] = is_transparent;
+  }
+  // Front face
+  is_transparent = false;
+  for (int i = 0; i < 6; i+=(i%2)*2+1)
+  {
+    if (!children_[i] || children_[i]->faceIsTransparent(5))
+    {
+      is_transparent = true;
+      break;
+    }
+  }
+  if (transparent_face_[5] != is_transparent)
+  {
+    if (auto tmp = neighbors_[4].lock()) tmp->neighbors_changed_ = true;
+    //if (neighbors_[4] != nullptr) neighbors_[4]->neighbors_changed_ = true;
+    transparent_face_[5] = is_transparent;
+  }
+}
+
+
+void Octree::deleteChildren()
+{
+  is_leaf_ = true;
+  for (unsigned int i = 0; i < 8; i++)
+  {
+    if (children_[i] != nullptr)
+    {
+      children_[i].reset();
+      children_[i] = nullptr;
+    }
+  }
+  return;
+}
+
 
 
 void Octree::setNeighbors(std::weak_ptr<Octree> *neighbors)
